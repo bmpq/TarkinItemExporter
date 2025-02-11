@@ -1,0 +1,121 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>gltfmod</AssemblyName>
+    <Description>gltfmod</Description>
+    <Version>1.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" ExcludeAssets="runtime" PrivateAssets="all">
+      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <SPTPath>E:\Games\SPT_BLEEDINGEDGE</SPTPath>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Reference Include="glTFast">
+      <HintPath>References\glTFast.dll</HintPath>
+    </Reference>
+    <Reference Include="glTFast.Export">
+      <HintPath>References\glTFast.Export.dll</HintPath>
+    </Reference>
+    <Reference Include="glTFast.dots">
+      <HintPath>References\glTFast.dots.dll</HintPath>
+    </Reference>
+
+    <Reference Include="UnityGLTFScripts">
+      <HintPath>References\UnityGLTFScripts.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityGLTF.Helpers">
+      <HintPath>References\UnityGLTF.Helpers.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="BepInEx">
+      <HintPath>$(SPTPath)\BepInEx\core\BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="HarmonyLib">
+      <HintPath>$(SPTPath)\BepInEx\core\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>$(SPTPath)\BepInEx\core\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="spt-reflection">
+      <HintPath>$(SPTPath)\BepInEx\plugins\spt\spt-reflection.dll</HintPath>
+    </Reference>
+    <Reference Include="spt-common">
+      <HintPath>$(SPTPath)\BepInEx\plugins\spt\spt-common.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="AssetBundleLoader">
+      <HintPath>$(SPTPath)\BepInEx\plugins\tarkin\AssetBundleLoader.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="UnityEngine">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Cinemachine">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Cinemachine.dll</HintPath>
+    </Reference>
+    <Reference Include="Comfort">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Comfort.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="Sirenix.Serialization">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Sirenix.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\DOTween.dll</HintPath>
+    </Reference>
+    <Reference Include="DOTween.Modules">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\DOTween.Modules.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CopyDllAfterBuild" AfterTargets="Build">
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SPTPath)\BepInEx\plugins\tarkin" />
+  </Target>
+</Project>
