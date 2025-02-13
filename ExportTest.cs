@@ -38,7 +38,7 @@ namespace gltfmod
 
         void Update()
         {
-            if (Input.GetKeyUp(KeyCode.P))
+            if (Input.GetKeyUp(KeyCode.RightBracket))
             {
                 StartCoroutine(TriggerExport());
             }
@@ -61,8 +61,6 @@ namespace gltfmod
             {
                 if (ReimportMeshAssetAndReplace(item))
                     uniqueRootNodes.Add(item.transform.GetRoot().gameObject);
-                else
-                    Destroy(item.gameObject);
             }
 
             yield return new WaitForEndOfFrame();
@@ -82,20 +80,31 @@ namespace gltfmod
         {
             try
             {
-                MeshFilter componentLod0 = assetPoolObject.GetComponentInChildren<MeshFilter>();
-                if (componentLod0.mesh.isReadable)
-                    return true;
-
                 FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
                 ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
                 string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
 
                 List<AssetItem> assets = Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
-                AssetStudio.Mesh asMesh = (AssetStudio.Mesh)assets.First(a => (a.Asset is AssetStudio.Mesh && a.Text == componentLod0.mesh.name)).Asset;
 
-                componentLod0.mesh = asMesh.ConvertToUnityMesh();
+                foreach (var meshFilter in assetPoolObject.GetComponentsInChildren<MeshFilter>())
+                {
+                    if (meshFilter.mesh.isReadable)
+                        continue;
 
-                Plugin.Log.LogInfo($"{assetPoolObject.name}: success reimporting and replacing mesh");
+                    Plugin.Log.LogInfo($"{meshFilter.name}: attempting reimport...");
+
+                    AssetItem assetItem = assets.FirstOrDefault(a => (a.Asset is AssetStudio.Mesh && a.Text == meshFilter.mesh.name));
+                    if (assetItem == null)
+                        continue;
+
+                    AssetStudio.Mesh asMesh = assetItem.Asset as AssetStudio.Mesh;
+                    if (asMesh == null)
+                        continue;
+
+                    meshFilter.mesh = asMesh.ConvertToUnityMesh();
+
+                    Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
+                }
 
                 return true;
             }
@@ -108,14 +117,21 @@ namespace gltfmod
 
         public void DestroyChildrenExceptLOD0(GameObject item)
         {
-            for (int i = item.transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = item.transform.GetChild(i);
-                string childName = child.name.ToUpper();
+            string[] toDestroy = new string[] { "LOD1", "LOD2", "LOD3", "LOD4", "SHADOW_LOD0" };
 
-                if (!childName.Contains("LOD0") || childName.Contains("SHADOW_LOD0"))
+            foreach (MeshFilter meshFilter in item.GetComponentsInChildren<MeshFilter>())
+            {
+                string childName = meshFilter.gameObject.name.ToUpper();
+
+                foreach (string s in toDestroy)
                 {
-                    Destroy(child.gameObject);
+                    if (childName.Contains(s))
+                    {
+                        Plugin.Log.LogInfo($"{meshFilter.gameObject}: deleting...");
+
+                        Destroy(meshFilter.gameObject.GetComponent<MeshRenderer>());
+                        Destroy(meshFilter);
+                    }
                 }
             }
         }
@@ -135,7 +151,7 @@ namespace gltfmod
 
             var gameObjectExportSettings = new GameObjectExportSettings
             {
-                OnlyActiveInHierarchy = false,
+                OnlyActiveInHierarchy = true,
                 DisabledComponents = false
             };
 
