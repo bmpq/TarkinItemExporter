@@ -12,27 +12,33 @@ public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;
 
+    internal static ConfigEntry<AssetExporter> SelectedExporter;
+
     private void Awake()
     {
         Log = base.Logger;
 
         InitConfiguration();
 
-        new PatchGLTFastExporterShader().Enable();
-        //new PatchShaderFind().Enable();
-        //new PatchResourcesLoad().Enable();
-
-        AssetBundle bundle = AssetBundleLoader.BundleLoader.LoadAssetBundle("gltfast");
-        //AssetBundle bundle = AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf");
-        BundleShaders.Add(bundle.LoadAllAssets<Shader>());
+        if (SelectedExporter.Value == AssetExporter.UnityGLTF)
+        {
+            new PatchShaderFind().Enable();
+            new PatchResourcesLoad().Enable();
+            BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
+        }
+        else if (SelectedExporter.Value == AssetExporter.GLTFast)
+        {
+            new PatchGLTFastExporterShader().Enable();
+            BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("gltfast").LoadAllAssets<Shader>());
+        }
 
         GameObject yo = new GameObject("yo");
-        //yo.AddComponent<ExportTestUnityGLTF>();
-        yo.AddComponent<ExportTestGLTFast>();
+        yo.AddComponent<ExportTest>();
         DontDestroyOnLoad(yo);
     }
 
     private void InitConfiguration()
     {
+        SelectedExporter = Config.Bind("General", "SelectedExporter", AssetExporter.UnityGLTF, "Which file export library to use (changes require game restart)");
     }
 }
