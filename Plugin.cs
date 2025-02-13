@@ -19,14 +19,16 @@ public class Plugin : BaseUnityPlugin
         InitConfiguration();
 
         new PatchGLTFastExporterShader().Enable();
-        new PatchShaderFind().Enable();
-        new PatchResourcesLoad().Enable();
+        //new PatchShaderFind().Enable();
+        //new PatchResourcesLoad().Enable();
 
-        AssetBundle bundle = AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf");
+        AssetBundle bundle = AssetBundleLoader.BundleLoader.LoadAssetBundle("gltfast");
+        //AssetBundle bundle = AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf");
         BundleShaders.Add(bundle.LoadAllAssets<Shader>());
 
         GameObject yo = new GameObject("yo");
-        yo.AddComponent<ExportTestUnityGLTF>();
+        //yo.AddComponent<ExportTestUnityGLTF>();
+        yo.AddComponent<ExportTestGLTFast>();
         DontDestroyOnLoad(yo);
     }
 

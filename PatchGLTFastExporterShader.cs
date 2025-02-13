@@ -19,7 +19,7 @@ namespace gltfmod
         [PatchPrefix]
         private static bool PatchPrefix(ref Material __result, string shaderName)
         {
-            Shader shader = BundleShaders.Find(shaderName);
+            Shader shader = BundleShaders.Find("Hidden/" + shaderName);
             if (shader != null)
             {
                 __result = new Material(shader);

@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssetsTools.NET" Version="3.0.0" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" ExcludeAssets="runtime" PrivateAssets="all">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -36,6 +37,13 @@
     </Reference>
     <Reference Include="UnityGLTF.Helpers">
       <HintPath>References\UnityGLTF.Helpers.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="AssetStudio">
+      <HintPath>References\AssetStudio.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4">
+      <HintPath>References\K4os.Compression.LZ4.dll</HintPath>
     </Reference>
     
     <Reference Include="BepInEx">
@@ -88,6 +96,9 @@
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\Unity.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.UI.dll</HintPath>
