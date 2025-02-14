@@ -65,6 +65,10 @@ namespace gltfmod
 
             yield return new WaitForEndOfFrame();
 
+            FailSafeDestroyAllUnreadableMesh(uniqueRootNodes);
+
+            yield return new WaitForEndOfFrame();
+
             toExport = uniqueRootNodes.ToArray();
 
             Debug.Log($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
@@ -75,18 +79,41 @@ namespace gltfmod
                 Export_GLTFast(toExport);
         }
 
+        void FailSafeDestroyAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
+        {
+            foreach (GameObject rootNode in uniqueRootNodes)
+            {
+                MeshFilter[] meshFilters = rootNode.GetComponentsInChildren<MeshFilter>();
+                foreach (var meshFilter in meshFilters)
+                {
+                    if (!meshFilter.mesh.isReadable || meshFilter.mesh.vertexCount == 0)
+                    {
+                        Debug.LogError($"{meshFilter.name} has an unreadable mesh, destroying it.");
+                        Destroy(meshFilter);
+                    }
+                }
+            }
+        }
+
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
         bool ReimportMeshAssetAndReplace(AssetPoolObject assetPoolObject)
         {
             try
             {
+                MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
+                if (meshFilters.All(meshFilter => meshFilter.mesh.isReadable))
+                    return true;
+
                 FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
                 ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
                 string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
 
                 List<AssetItem> assets = Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
 
-                foreach (var meshFilter in assetPoolObject.GetComponentsInChildren<MeshFilter>())
+                // some meshes are in client_assets.bundle (idk)
+                assets.AddRange(Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", Path.Combine(Path.GetDirectoryName(pathBundle), "client_assets.bundle"))));
+
+                foreach (var meshFilter in meshFilters)
                 {
                     if (meshFilter.mesh.isReadable)
                         continue;
@@ -129,6 +156,7 @@ namespace gltfmod
                     {
                         Plugin.Log.LogInfo($"{meshFilter.gameObject}: deleting...");
 
+                        Destroy(meshFilter.gameObject.GetComponent<HotObject>());
                         Destroy(meshFilter.gameObject.GetComponent<MeshRenderer>());
                         Destroy(meshFilter);
                     }

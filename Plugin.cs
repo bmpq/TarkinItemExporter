@@ -17,6 +17,7 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Log = base.Logger;
+        AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
 
         InitConfiguration();
 

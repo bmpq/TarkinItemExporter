@@ -5,44 +5,49 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-public static class Studio
+public class Studio
 {
-    public static List<AssetItem> parsedAssetsList = new List<AssetItem>();
-    private static Dictionary<AssetStudio.Object, string> containers = new Dictionary<AssetStudio.Object, string>();
-    public static AssetsManager assetsManager;
-    public static List<BaseNode> gameObjectTree = new List<BaseNode>();
-
-    static Studio()
-    {
-        Logger.Default = new BepinexLogger();
-    }
+    static Dictionary<string, List<AssetItem>> cache = new Dictionary<string, List<AssetItem>>();
 
     public static List<AssetItem> LoadAssets(string bundlePath)
     {
+        if (!File.Exists(bundlePath))
+        { 
+            Logger.Info("Bundle doesn't exist: " + bundlePath);
+            return new List<AssetItem>();
+        }
+
+        if (cache.ContainsKey(bundlePath))
+        {
+            Logger.Info("Bundle already loaded: " + bundlePath);
+            return cache[bundlePath];
+        }
+
         Logger.Info("Attempting to load: " + bundlePath);
 
-        parsedAssetsList.Clear();
-        containers.Clear();
-        gameObjectTree.Clear();
-
-        assetsManager = new AssetsManager();
+        AssetsManager assetsManager = new AssetsManager();
 
         assetsManager.SpecifyUnityVersion = new UnityVersion(UnityEngine.Application.unityVersion);
         assetsManager.LoadFilesAndFolders(bundlePath);
 
-        ParseAssets();
+        List<AssetItem> parsedAssetsList = ParseAssets(assetsManager);
+
+        cache[bundlePath] = parsedAssetsList;
 
         return parsedAssetsList;
     }
 
-    public static void ParseAssets()
+    private static List<AssetItem> ParseAssets(AssetsManager assetsManager)
     {
         Logger.Info("Parse assets...");
+
+        List<AssetItem> parsedAssetsList = new List<AssetItem>();
 
         var fileAssetsList = new List<AssetItem>();
         var tex2dArrayAssetList = new List<AssetItem>();
         var objectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
         var objectAssetItemDic = new Dictionary<AssetStudio.Object, AssetItem>(objectCount);
+        Dictionary<AssetStudio.Object, string> containers = new Dictionary<AssetStudio.Object, string>();
 
         Progress.Reset();
         var i = 0;
@@ -161,8 +166,6 @@ public static class Studio
             tex2dArrayAssetList.Clear();
         }
 
-        BuildTreeStructure(objectAssetItemDic);
-
         var log = $"Finished loading {assetsManager.assetsFileList.Count} files with {parsedAssetsList.Count} exportable assets";
         var unityVer = assetsManager.assetsFileList[0].version;
         long m_ObjectsCount;
@@ -182,12 +185,16 @@ public static class Studio
             log += $" and {m_ObjectsCount - objectsCount} assets failed to read";
         }
         Logger.Info(log);
+
+        return parsedAssetsList;
     }
 
 
-    public static void BuildTreeStructure(Dictionary<AssetStudio.Object, AssetItem> objectAssetItemDic)
+    private static List<BaseNode> BuildTreeStructure(AssetsManager assetsManager, Dictionary<AssetStudio.Object, AssetItem> objectAssetItemDic)
     {
         Logger.Info("Building tree structure...");
+
+        List<BaseNode> gameObjectTree = new List<BaseNode>();
 
         var treeNodeDictionary = new Dictionary<GameObject, GameObjectNode>();
         var assetsFileCount = assetsManager.assetsFileList.Count;
@@ -260,6 +267,8 @@ public static class Studio
 
         treeNodeDictionary.Clear();
         objectAssetItemDic.Clear();
+
+        return gameObjectTree;
     }
 
     private static void GenerateFullPath(BaseNode treeNode, string path)
