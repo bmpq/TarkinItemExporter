@@ -40,7 +40,19 @@ namespace gltfmod
         {
             if (Input.GetKeyUp(KeyCode.RightBracket))
             {
+                NukeOutputDir();
                 StartCoroutine(TriggerExport());
+            }
+        }
+
+        void NukeOutputDir()
+        {
+            var dirInfo = new DirectoryInfo(PathExportDirectory);
+
+            foreach (FileInfo file in dirInfo.GetFiles())
+            {
+                file.IsReadOnly = false;
+                file.Delete();
             }
         }
 
@@ -88,7 +100,7 @@ namespace gltfmod
                 {
                     if (!meshFilter.mesh.isReadable || meshFilter.mesh.vertexCount == 0)
                     {
-                        Debug.LogError($"{meshFilter.name} has an unreadable mesh, destroying it.");
+                        Debug.LogWarning($"{meshFilter.name} has an unreadable mesh, destroying it.");
                         Destroy(meshFilter);
                     }
                 }
@@ -209,8 +221,9 @@ namespace gltfmod
             Transform[] toExport = rootLevelNodes.Select(go => go != null ? go.transform : null).ToArray();
 
             GLTFSettings gLTFSettings = GLTFSettings.GetOrCreateSettings();
-            gLTFSettings.ExportDisabledGameObjects = true;
+            gLTFSettings.ExportDisabledGameObjects = false;
             gLTFSettings.RequireExtensions = true;
+            gLTFSettings.ExportPlugins.Add(ScriptableObject.CreateInstance(typeof(EFTShaderExportPlugin)) as EFTShaderExportPlugin);
             ExportContext context = new ExportContext(gLTFSettings);
             GLTFSceneExporter exporter = new GLTFSceneExporter(toExport, context);
 

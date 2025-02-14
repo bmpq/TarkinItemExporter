@@ -38,6 +38,18 @@
     <Reference Include="UnityGLTF.Helpers">
       <HintPath>References\UnityGLTF.Helpers.dll</HintPath>
     </Reference>
+    <Reference Include="UnityGltf.RenderPipelines">
+      <HintPath>References\UnityGltf.RenderPipelines.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityGLTF.Plugins.Experimental">
+      <HintPath>References\UnityGLTF.Plugins.Experimental.dll</HintPath>
+    </Reference>
+    <Reference Include="GLTFSerialization">
+      <HintPath>References\GLTFSerialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>References\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+    </Reference>
     
     <Reference Include="AssetStudio">
       <HintPath>References\AssetStudio.dll</HintPath>
