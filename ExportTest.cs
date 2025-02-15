@@ -61,8 +61,8 @@ namespace gltfmod
             List<AssetPoolObject> allItems = FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
             foreach (AssetPoolObject item in allItems)
             {
-                DestroyChildrenExceptLOD0(item.gameObject);
-                item.GetComponentsInChildren<LODGroup>().DestroyAll();
+                // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
+                HandleLODs(item.gameObject);
             }
 
             // in unity destroy is delayed until the end of the frame
@@ -154,26 +154,28 @@ namespace gltfmod
             }
         }
 
-        public void DestroyChildrenExceptLOD0(GameObject item)
+        public void HandleLODs(GameObject item)
         {
-            string[] toDestroy = new string[] { "LOD1", "LOD2", "LOD3", "LOD4", "SHADOW_LOD0" };
-
-            foreach (MeshFilter meshFilter in item.GetComponentsInChildren<MeshFilter>())
+            foreach (LODGroup lodGroup in item.GetComponentsInChildren<LODGroup>())
             {
-                string childName = meshFilter.gameObject.name.ToUpper();
-
-                foreach (string s in toDestroy)
+                LOD[] lods = lodGroup.GetLODs();
+                for (int i = 0; i < lods.Length; i++)
                 {
-                    if (childName.Contains(s))
+                    foreach (var rend in lods[i].renderers)
                     {
-                        Plugin.Log.LogInfo($"{meshFilter.gameObject}: deleting...");
-
-                        Destroy(meshFilter.gameObject.GetComponent<HotObject>());
-                        Destroy(meshFilter.gameObject.GetComponent<MeshRenderer>());
-                        Destroy(meshFilter);
+                        rend.enabled = i == 0;
                     }
                 }
             }
+
+            // don't need the shadow meshes either, they are lodded too
+            foreach (MeshRenderer meshRend in item.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (meshRend.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                    meshRend.enabled = false;
+            }
+
+            item.GetComponentsInChildren<LODGroup>().DestroyAll();
         }
 
         async Task Export_GLTFast(GameObject[] rootLevelNodes)
