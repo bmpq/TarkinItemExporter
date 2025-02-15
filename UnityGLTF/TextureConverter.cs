@@ -41,7 +41,7 @@ namespace gltfmod.UnityGLTF
             Graphics.Blit(inputTextureA, temporary, mat);
 
             Texture2D convertedTexture = temporary.ToTexture2D();
-            convertedTexture.name = "SpecularGlossiness";
+            convertedTexture.name = ReplaceLastWord(inputTextureA.name, '_', "SPECGLOS");
 
             RenderTexture.ReleaseTemporary(temporary);
             GL.sRGBWrite = sRGBWrite;
@@ -57,6 +57,16 @@ namespace gltfmod.UnityGLTF
             tex.Apply();
 
             return tex;
+        }
+
+        static string ReplaceLastWord(string input, char separator, string replacement)
+        {
+            int lastIndex = input.LastIndexOf(separator);
+            if (lastIndex == -1)
+            {
+                return replacement;
+            }
+            return input.Substring(0, lastIndex + 1) + replacement;
         }
     }
 }

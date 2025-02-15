@@ -47,6 +47,8 @@ namespace gltfmod
                     newMat.SetColor("_EmissionColor", Color.black);
                 }
 
+                newMat.name = origMat.name;
+
                 return newMat;
             }
             catch (Exception ex)
