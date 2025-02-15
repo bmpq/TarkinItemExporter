@@ -25,6 +25,7 @@ public class Plugin : BaseUnityPlugin
         {
             new PatchShaderFind().Enable();
             new PatchResourcesLoad().Enable();
+            new PatchGetExportSettingsForSlot().Enable();
             BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
         }
         else if (SelectedExporter.Value == AssetExporter.GLTFast)

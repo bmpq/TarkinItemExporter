@@ -81,6 +81,10 @@ namespace gltfmod
 
             yield return new WaitForEndOfFrame();
 
+            PreprocessMaterials(uniqueRootNodes);
+
+            yield return new WaitForEndOfFrame();
+
             toExport = uniqueRootNodes.ToArray();
 
             Debug.Log($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
@@ -172,10 +176,33 @@ namespace gltfmod
             foreach (MeshRenderer meshRend in item.GetComponentsInChildren<MeshRenderer>())
             {
                 if (meshRend.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                {
                     meshRend.enabled = false;
+                }
             }
 
             item.GetComponentsInChildren<LODGroup>().DestroyAll();
+        }
+
+        void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
+        {
+            foreach (GameObject rootNode in uniqueRootNodes)
+            {
+                foreach (var rend in rootNode.GetComponentsInChildren<Renderer>())
+                {
+                    Material[] mats = rend.materials;
+
+                    for (int i = 0; i < mats.Length; i++)
+                    {
+                        if (mats[i] == null)
+                            continue;
+
+                        mats[i] = mats[i].ConvertToSpecGlos();
+                    }
+
+                    rend.materials = mats;
+                }
+            }
         }
 
         async Task Export_GLTFast(GameObject[] rootLevelNodes)
@@ -225,7 +252,8 @@ namespace gltfmod
             GLTFSettings gLTFSettings = GLTFSettings.GetOrCreateSettings();
             gLTFSettings.ExportDisabledGameObjects = false;
             gLTFSettings.RequireExtensions = true;
-            gLTFSettings.ExportPlugins.Add(ScriptableObject.CreateInstance(typeof(EFTShaderExportPlugin)) as EFTShaderExportPlugin);
+            gLTFSettings.UseTextureFileTypeHeuristic = false;
+
             ExportContext context = new ExportContext(gLTFSettings);
             GLTFSceneExporter exporter = new GLTFSceneExporter(toExport, context);
 
