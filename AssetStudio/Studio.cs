@@ -81,6 +81,12 @@ public class Studio
                     matchingFiles.Add(filePath);
                 }
             }
+            
+            string clientAssetsPath = Path.Combine(directory, "client_assets.bundle");
+            if (File.Exists(clientAssetsPath))
+            {
+                matchingFiles.Add(clientAssetsPath);
+            }
         }
         catch (Exception ex)
         {

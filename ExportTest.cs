@@ -122,12 +122,7 @@ namespace gltfmod
                 string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
 
                 List<AssetItem> assets = Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
-
-                // some meshes are in client_assets.bundle (idk)
-                string pathExtraBundle = Path.Combine(Application.streamingAssetsPath, "Windows", Path.Combine(Path.GetDirectoryName(pathBundle), "client_assets.bundle"));
-                if (File.Exists(pathExtraBundle))
-                    assets.AddRange(Studio.LoadAssets(pathExtraBundle, false));
-
+                
                 foreach (var meshFilter in meshFilters)
                 {
                     if (meshFilter.mesh.isReadable)
@@ -168,6 +163,8 @@ namespace gltfmod
                 {
                     foreach (var rend in lods[i].renderers)
                     {
+                        if (rend == null)
+                            continue;
                         rend.enabled = i == 0;
                     }
                 }
