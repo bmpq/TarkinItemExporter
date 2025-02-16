@@ -28,8 +28,17 @@ namespace gltfmod.UnityGLTF
             return convertedTexture;
         }
 
+        static Dictionary<Texture, Texture2D> cache = new Dictionary<Texture, Texture2D>();
+
         public static Texture2D ConvertAlbedoSpecGlosToSpecGloss(Texture inputTextureA, Texture inputTextureB)
         {
+            if (cache.ContainsKey(inputTextureA))
+            {
+                Texture2D cached = cache[inputTextureA];
+                Plugin.Log.LogInfo($"Using cached converted texture {cached.name}");
+                return cached;
+            }
+
             Material mat = new Material(BundleShaders.Find("Hidden/AlbedoSpecGlosToSpecGloss"));
             mat.SetTexture("_AlbedoSpecTex", inputTextureA);
             mat.SetTexture("_GlossinessTex", inputTextureB);
@@ -45,6 +54,8 @@ namespace gltfmod.UnityGLTF
 
             RenderTexture.ReleaseTemporary(temporary);
             GL.sRGBWrite = sRGBWrite;
+
+            cache[inputTextureA] = convertedTexture;
 
             return convertedTexture;
         }
