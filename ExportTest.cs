@@ -1,12 +1,7 @@
-﻿using System.Threading.Tasks;
-using UnityEngine;
-using GLTFast;
-using GLTFast.Export;
-using GLTFast.Logging;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System;
 using EFT.AssetsManager;
 using System.Reflection;
@@ -89,10 +84,7 @@ namespace gltfmod
 
             Debug.Log($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
 
-            if (Plugin.SelectedExporter.Value == AssetExporter.UnityGLTF)
-                Export_UnityGLTF(toExport);
-            else if (Plugin.SelectedExporter.Value == AssetExporter.GLTFast)
-                Export_GLTFast(toExport);
+            Export_UnityGLTF(toExport);
         }
 
         void FailSafeDestroyAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
@@ -204,46 +196,6 @@ namespace gltfmod
 
                     rend.materials = mats;
                 }
-            }
-        }
-
-        async Task Export_GLTFast(GameObject[] rootLevelNodes)
-        {
-            var logger = new CollectingLogger();
-
-            var exportSettings = new ExportSettings
-            {
-                Format = glb ? GltfFormat.Binary : GltfFormat.Json,
-                FileConflictResolution = FileConflictResolution.Overwrite,
-                PreservedVertexAttributes = VertexAttributeUsage.AllTexCoords | VertexAttributeUsage.Color,
-
-                Deterministic = true
-            };
-
-            var gameObjectExportSettings = new GameObjectExportSettings
-            {
-                OnlyActiveInHierarchy = true,
-                DisabledComponents = false
-            };
-
-            var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
-            export.AddScene(rootLevelNodes, "gltfscene");
-
-            try
-            {
-                var success = await export.SaveToFileAndDispose(PathExportFull + ".gltf");
-
-                if (success)
-                    Debug.Log($"Successfully exported to: {PathExportFull}");
-                else
-                    Debug.LogError("Something went wrong with GLTFast exporting");
-
-                logger.LogAll();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogException(ex);
-                logger.LogAll();
             }
         }
 

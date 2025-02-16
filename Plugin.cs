@@ -12,8 +12,6 @@ public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;
 
-    internal static ConfigEntry<AssetExporter> SelectedExporter;
-
     private void Awake()
     {
         Log = base.Logger;
@@ -21,18 +19,9 @@ public class Plugin : BaseUnityPlugin
 
         InitConfiguration();
 
-        if (SelectedExporter.Value == AssetExporter.UnityGLTF)
-        {
-            new PatchShaderFind().Enable();
-            new PatchResourcesLoad().Enable();
-            new PatchGetExportSettingsForSlot().Enable();
-            BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
-        }
-        else if (SelectedExporter.Value == AssetExporter.GLTFast)
-        {
-            new PatchGLTFastExporterShader().Enable();
-            BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("gltfast").LoadAllAssets<Shader>());
-        }
+        new PatchResourcesLoad().Enable();
+        new PatchGetExportSettingsForSlot().Enable();
+        BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
 
         GameObject yo = new GameObject("yo");
         yo.AddComponent<ExportTest>();
@@ -41,6 +30,5 @@ public class Plugin : BaseUnityPlugin
 
     private void InitConfiguration()
     {
-        SelectedExporter = Config.Bind("General", "SelectedExporter", AssetExporter.UnityGLTF, "Which file export library to use (changes require game restart)");
     }
 }

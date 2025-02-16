@@ -21,16 +21,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <Reference Include="glTFast">
-      <HintPath>References\glTFast.dll</HintPath>
-    </Reference>
-    <Reference Include="glTFast.Export">
-      <HintPath>References\glTFast.Export.dll</HintPath>
-    </Reference>
-    <Reference Include="glTFast.dots">
-      <HintPath>References\glTFast.dots.dll</HintPath>
-    </Reference>
-
     <Reference Include="UnityGLTFScripts">
       <HintPath>References\UnityGLTFScripts.dll</HintPath>
     </Reference>
