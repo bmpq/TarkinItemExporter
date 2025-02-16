@@ -1,11 +1,17 @@
 ﻿using AssetBundleLoader;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace gltfmod
 {
     public static class MaterialConverter
     {
+        // this caching makes caching the texture in `ConvertAlbedoSpecGlosToSpecGloss` redundant, I guess.
+        // caching also could result in wrong materials export if the base color texture is the same but with different glossiness or normal. Can't imagine why that would ever happen though.
+        // caching is required if we want meshes in gltf with the same material to actually reference that material, and not have their own instance, having duplicated materials seems wrong
+        static Dictionary<Texture, Material> cache = new Dictionary<Texture, Material>();
+
         public static Material ConvertToSpecGlos(this Material origMat)
         {
             if (!origMat.shader.name.Contains("Bumped Specular"))
@@ -17,6 +23,13 @@ namespace gltfmod
             {
                 Color origColor = origMat.color;
                 Texture origTexMain = origMat.GetTexture("_MainTex");
+                if (cache.ContainsKey(origTexMain))
+                {
+                    Material cached = cache[origTexMain];
+                    Plugin.Log.LogInfo($"Using cached converted material {cached.name}");
+                    return cached;
+                }
+
                 Texture origTexGloss = origMat.GetTexture("_SpecMap");
                 Texture origTexNormal = origMat.GetTexture("_BumpMap");
 
@@ -46,6 +59,8 @@ namespace gltfmod
                 }
 
                 newMat.name = origMat.name;
+
+                cache[origTexMain] = newMat;
 
                 return newMat;
             }
