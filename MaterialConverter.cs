@@ -11,6 +11,8 @@ namespace gltfmod
             if (!origMat.shader.name.Contains("Bumped Specular"))
                 return origMat;
 
+            Plugin.Log.LogInfo($"{origMat.name}: converting to gltf specular-gloss...");
+
             try
             {
                 Color origColor = origMat.color;
@@ -20,6 +22,7 @@ namespace gltfmod
 
                 Texture2D texSpecGlos = TextureConverter.ConvertAlbedoSpecGlosToSpecGloss(origTexMain, origTexGloss);
 
+                // this material is from UnityGLTF package
                 Material newMat = UnityEngine.Object.Instantiate(BundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Material>("Standard (Specular setup)"));
 
                 newMat.SetColor("_Color", origColor);

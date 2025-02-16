@@ -6,6 +6,11 @@ using UnityEngine;
 
 namespace gltfmod
 {
+    /// <summary>
+    /// UnityGLTF expects `NormalChannel.shader` to be packed with game build in `Resources/`
+    /// can't do that with a mod
+    /// so we are patching a manual loading from a bundle
+    /// </summary>
     internal class PatchResourcesLoad : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
@@ -22,13 +27,8 @@ namespace gltfmod
 
                 if (replacementShader != null)
                 {
-                    __result = replacementShader; // Replace the original result with our bundled shader
-                    Plugin.Log.LogInfo($"[gltfmod] Replaced Resources.Load shader '{path}' with bundled shader.");
-                }
-                else
-                {
-                    // Optionally log if a shader wasn't replaced (for debugging)
-                    Plugin.Log.LogWarning($"[gltfmod] Resources.Load shader '{path}' not replaced (not found in bundle).");
+                    __result = replacementShader;
+                    Plugin.Log.LogInfo($"Replaced Resources.Load shader '{path}' with bundled shader.");
                 }
             }
         }

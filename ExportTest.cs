@@ -54,6 +54,9 @@ namespace gltfmod
         IEnumerator TriggerExport()
         {
             List<AssetPoolObject> allItems = FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
+
+            Plugin.Log.LogInfo($"Exporting {allItems.Count} items.");
+
             foreach (AssetPoolObject item in allItems)
             {
                 // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
@@ -82,7 +85,7 @@ namespace gltfmod
 
             toExport = uniqueRootNodes.ToArray();
 
-            Debug.Log($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
+            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
 
             Export_UnityGLTF(toExport);
         }
@@ -112,6 +115,8 @@ namespace gltfmod
                 if (meshFilters.All(meshFilter => meshFilter.mesh.isReadable))
                     return true;
 
+                Plugin.Log.LogInfo($"{assetPoolObject.name}: contains unreadable meshes. Loading its bundle file...");
+
                 FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
                 ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
                 string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
@@ -128,7 +133,7 @@ namespace gltfmod
                     if (meshFilter.mesh.isReadable)
                         continue;
 
-                    Plugin.Log.LogInfo($"{meshFilter.name}: attempting reimport...");
+                    Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
 
                     AssetItem assetItem = assets.FirstOrDefault(a => (a.Asset is AssetStudio.Mesh && a.Text == meshFilter.mesh.name));
                     if (assetItem == null)
@@ -154,6 +159,8 @@ namespace gltfmod
 
         public void HandleLODs(GameObject item)
         {
+            Plugin.Log.LogInfo($"Handling LODs in {item.name}...");
+
             foreach (LODGroup lodGroup in item.GetComponentsInChildren<LODGroup>())
             {
                 LOD[] lods = lodGroup.GetLODs();
@@ -222,11 +229,11 @@ namespace gltfmod
                     exporter.SaveGLTFandBin(PathExportDirectory, outputFileName, true);
                 }
 
-                Debug.Log("Successful export with UnityGLTF. Output to: " + PathExportFull);
+                Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + PathExportFull);
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                Plugin.Log.LogError(ex);
             }
         }
     }

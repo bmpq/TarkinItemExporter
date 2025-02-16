@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace gltfmod.UnityGLTF
+namespace gltfmod
 {
-    internal static class TextureConverter
+    public static class TextureConverter
     {
         public static Texture2D Convert(Texture inputTexture, Shader shader)
         {
@@ -30,32 +25,32 @@ namespace gltfmod.UnityGLTF
 
         static Dictionary<Texture, Texture2D> cache = new Dictionary<Texture, Texture2D>();
 
-        public static Texture2D ConvertAlbedoSpecGlosToSpecGloss(Texture inputTextureA, Texture inputTextureB)
+        public static Texture2D ConvertAlbedoSpecGlosToSpecGloss(Texture inputTextureAlbedoSpec, Texture inputTextureGloss)
         {
-            if (cache.ContainsKey(inputTextureA))
+            if (cache.ContainsKey(inputTextureAlbedoSpec))
             {
-                Texture2D cached = cache[inputTextureA];
+                Texture2D cached = cache[inputTextureAlbedoSpec];
                 Plugin.Log.LogInfo($"Using cached converted texture {cached.name}");
                 return cached;
             }
 
             Material mat = new Material(BundleShaders.Find("Hidden/AlbedoSpecGlosToSpecGloss"));
-            mat.SetTexture("_AlbedoSpecTex", inputTextureA);
-            mat.SetTexture("_GlossinessTex", inputTextureB);
+            mat.SetTexture("_AlbedoSpecTex", inputTextureAlbedoSpec);
+            mat.SetTexture("_GlossinessTex", inputTextureGloss);
 
             bool sRGBWrite = GL.sRGBWrite;
             GL.sRGBWrite = false;
-            RenderTexture temporary = RenderTexture.GetTemporary(inputTextureA.width, inputTextureA.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            RenderTexture temporary = RenderTexture.GetTemporary(inputTextureAlbedoSpec.width, inputTextureAlbedoSpec.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
 
-            Graphics.Blit(inputTextureA, temporary, mat);
+            Graphics.Blit(inputTextureAlbedoSpec, temporary, mat);
 
             Texture2D convertedTexture = temporary.ToTexture2D();
-            convertedTexture.name = ReplaceLastWord(inputTextureA.name, '_', "SPECGLOS");
+            convertedTexture.name = ReplaceLastWord(inputTextureAlbedoSpec.name, '_', "SPECGLOS");
 
             RenderTexture.ReleaseTemporary(temporary);
             GL.sRGBWrite = sRGBWrite;
 
-            cache[inputTextureA] = convertedTexture;
+            cache[inputTextureAlbedoSpec] = convertedTexture;
 
             return convertedTexture;
         }

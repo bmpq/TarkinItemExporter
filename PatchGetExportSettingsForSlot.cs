@@ -17,7 +17,7 @@ namespace gltfmod
         [PatchPostfix]
         private static void PatchPostfix(ref TextureExportSettings __result, string textureSlot)
         {
-            /// we do custom conversion at <see cref="gltfmod.UnityGLTF.TextureConverter.ConvertAlbedoSpecGlosToSpecGloss"/>
+            /// we do custom conversion at <see cref="TextureConverter.ConvertAlbedoSpecGlosToSpecGloss"/>
             /// this patch skips a UnityGLTF conversion
             if (textureSlot == TextureMapType.SpecGloss)
             {
