@@ -127,7 +127,9 @@ namespace gltfmod
                 List<AssetItem> assets = Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
 
                 // some meshes are in client_assets.bundle (idk)
-                assets.AddRange(Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", Path.Combine(Path.GetDirectoryName(pathBundle), "client_assets.bundle"))));
+                string pathExtraBundle = Path.Combine(Application.streamingAssetsPath, "Windows", Path.Combine(Path.GetDirectoryName(pathBundle), "client_assets.bundle"));
+                if (File.Exists(pathExtraBundle))
+                    assets.AddRange(Studio.LoadAssets(pathExtraBundle));
 
                 foreach (var meshFilter in meshFilters)
                 {
