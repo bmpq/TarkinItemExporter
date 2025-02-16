@@ -5,10 +5,8 @@ namespace gltfmod
 {
     public static class TextureConverter
     {
-        public static Texture2D Convert(Texture inputTexture, Shader shader)
+        public static Texture2D Convert(Texture inputTexture, Material mat)
         {
-            Material mat = new Material(shader);
-
             bool sRGBWrite = GL.sRGBWrite;
             GL.sRGBWrite = false;
             RenderTexture temporary = RenderTexture.GetTemporary(inputTexture.width, inputTexture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
@@ -19,6 +17,8 @@ namespace gltfmod
 
             RenderTexture.ReleaseTemporary(temporary);
             GL.sRGBWrite = sRGBWrite;
+
+            convertedTexture.name = inputTexture.name;
 
             return convertedTexture;
         }
@@ -65,7 +65,7 @@ namespace gltfmod
             return tex;
         }
 
-        static string ReplaceLastWord(string input, char separator, string replacement)
+        public static string ReplaceLastWord(this string input, char separator, string replacement)
         {
             int lastIndex = input.LastIndexOf(separator);
             if (lastIndex == -1)
@@ -73,6 +73,29 @@ namespace gltfmod
                 return replacement;
             }
             return input.Substring(0, lastIndex + 1) + replacement;
+        }
+
+        public static Texture2D CreateSolidColorTexture(int width, int height, float r, float g, float b, float a)
+        {
+            Texture2D texture = new Texture2D(width, height);
+
+            Color[] pixels = new Color[width * height];
+            Color color = new Color(r, g, b, a);
+
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                pixels[i] = color;
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply();
+
+            return texture;
+        }
+
+        public static Texture2D CreateSolidColorTexture(int width, int height, float c, float a)
+        {
+            return CreateSolidColorTexture(width, height, c, c, c, a);
         }
     }
 }

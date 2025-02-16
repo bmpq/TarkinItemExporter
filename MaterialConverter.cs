@@ -30,8 +30,27 @@ namespace gltfmod
                     return cached;
                 }
 
-                Texture origTexGloss = origMat.GetTexture("_SpecMap");
-                Texture origTexNormal = origMat.GetTexture("_BumpMap");
+                Texture origTexGloss;
+                // this shader doesn't work with glos or spec textures, but with floats
+                // so we create replacement solid color textures
+                if (origMat.shader.name == "p0/Reflective/Bumped Specular")
+                {
+                    float glos = origMat.GetFloat("_Shininess");
+                    origTexGloss = TextureConverter.CreateSolidColorTexture(origTexMain.width, origTexMain.height, glos, 1f);
+                    origTexGloss.name = origTexMain.name.ReplaceLastWord('_', "GLOSSINESS");
+
+                    Material mat = new Material(BundleShaders.Find("Hidden/SetAlpha"));
+                    mat.SetFloat("_Alpha", origMat.GetColor("_SpecColor").r);
+                    origTexMain = TextureConverter.Convert(origTexMain, mat);
+                }
+                else
+                    origTexGloss = origMat.GetTexture("_SpecMap");
+
+                Texture origTexNormal;
+                if (!origMat.HasProperty("_BumpMap"))
+                    origTexNormal = Texture2D.normalTexture;
+                else
+                    origTexNormal = origMat.GetTexture("_BumpMap");
 
                 Texture2D texSpecGlos = TextureConverter.ConvertAlbedoSpecGlosToSpecGloss(origTexMain, origTexGloss);
 
