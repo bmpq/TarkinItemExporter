@@ -7,31 +7,49 @@ using System.Linq;
 
 public class Studio
 {
-    static Dictionary<string, List<AssetItem>> cache = new Dictionary<string, List<AssetItem>>();
+    static Dictionary<string, List<AssetItem>> fileCache = new Dictionary<string, List<AssetItem>>();
 
     public static List<AssetItem> LoadAssets(string requestBundlePath, bool searchAdditional = true)
     {
-        if (cache.ContainsKey(requestBundlePath))
-        {
-            Logger.Info("Bundle already loaded: " + requestBundlePath);
-            return cache[requestBundlePath];
-        }
-
         List<AssetItem> result = new List<AssetItem>();
 
-        string[] possibleFilePaths;
+        requestBundlePath = Path.GetFullPath(requestBundlePath);
+
+        HashSet<string> possibleFilePaths = [requestBundlePath];
         if (searchAdditional)
-            possibleFilePaths = GetPossibleFilePaths(requestBundlePath);
-        else
-            possibleFilePaths = [requestBundlePath];
+            possibleFilePaths.UnionWith(GetPossibleFilePaths(requestBundlePath));
+
+        List<string> pathAlreadyCached = new List<string>();
+        foreach (var path in possibleFilePaths)
+        {
+            string normPath = Path.GetFullPath(path);
+            if (fileCache.ContainsKey(normPath))
+            {
+                Plugin.Log.LogInfo($"Path found in cache: {normPath}");
+                result.AddRange(fileCache[normPath]);
+                pathAlreadyCached.Add(path);
+            }
+        }
+        possibleFilePaths.RemoveWhere(pathAlreadyCached.Contains);
+
+        if (possibleFilePaths.Count == 0)
+            return result;
 
         AssetsManager assetsManager = new AssetsManager();
         assetsManager.SpecifyUnityVersion = new UnityVersion(UnityEngine.Application.unityVersion);
-        assetsManager.LoadFilesAndFolders(possibleFilePaths);
+        assetsManager.LoadFilesAndFolders(possibleFilePaths.ToArray());
+        List<AssetItem> justLoaded = ParseAssets(assetsManager);
 
-        result.AddRange(ParseAssets(assetsManager));
+        foreach (AssetItem asset in justLoaded)
+        {
+            string normPath = Path.GetFullPath(asset.SourceFile.originalPath);
+            if (!fileCache.ContainsKey(normPath))
+                fileCache[normPath] = new List<AssetItem>();
+            fileCache[normPath].Add(asset);
+        }
 
-        cache[requestBundlePath] = result;
+        result.AddRange(justLoaded);
+
         return result;
     }
 
@@ -40,17 +58,17 @@ public class Studio
     // `handguard_ak_izhmash_ak74m_std_plastic_lod0_textures.bundle`
     // `handguard_ak_izhmash_ak74m_std_plastic_mesh`
     // this method simply searches for all files that contain the original bundle's name
-    static string[] GetPossibleFilePaths(string requestPath)
+    static HashSet<string> GetPossibleFilePaths(string requestPath)
     {
         string directory = Path.GetDirectoryName(requestPath);
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(requestPath);
 
         if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileNameWithoutExtension))
         {
-            return new string[0];
+            return new HashSet<string>();
         }
 
-        List<string> matchingFiles = new List<string>();
+        HashSet<string> matchingFiles = new HashSet<string>();
         string[] allFiles;
         try
         {
@@ -69,7 +87,7 @@ public class Studio
             Plugin.Log.LogError(ex);
         }
 
-        return matchingFiles.ToArray();
+        return matchingFiles;
     }
 
     private static List<AssetItem> ParseAssets(AssetsManager assetsManager)
