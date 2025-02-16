@@ -9,32 +9,67 @@ public class Studio
 {
     static Dictionary<string, List<AssetItem>> cache = new Dictionary<string, List<AssetItem>>();
 
-    public static List<AssetItem> LoadAssets(string bundlePath)
+    public static List<AssetItem> LoadAssets(string requestBundlePath, bool searchAdditional = true)
     {
-        if (!File.Exists(bundlePath))
-        { 
-            Logger.Info("Bundle doesn't exist: " + bundlePath);
-            return new List<AssetItem>();
-        }
-
-        if (cache.ContainsKey(bundlePath))
+        if (cache.ContainsKey(requestBundlePath))
         {
-            Logger.Info("Bundle already loaded: " + bundlePath);
-            return cache[bundlePath];
+            Logger.Info("Bundle already loaded: " + requestBundlePath);
+            return cache[requestBundlePath];
         }
 
-        Logger.Info("Attempting to load: " + bundlePath);
+        List<AssetItem> result = new List<AssetItem>();
+
+        string[] possibleFilePaths;
+        if (searchAdditional)
+            possibleFilePaths = GetPossibleFilePaths(requestBundlePath);
+        else
+            possibleFilePaths = [requestBundlePath];
 
         AssetsManager assetsManager = new AssetsManager();
-
         assetsManager.SpecifyUnityVersion = new UnityVersion(UnityEngine.Application.unityVersion);
-        assetsManager.LoadFilesAndFolders(bundlePath);
+        assetsManager.LoadFilesAndFolders(possibleFilePaths);
 
-        List<AssetItem> parsedAssetsList = ParseAssets(assetsManager);
+        result.AddRange(ParseAssets(assetsManager));
 
-        cache[bundlePath] = parsedAssetsList;
+        cache[requestBundlePath] = result;
+        return result;
+    }
 
-        return parsedAssetsList;
+    // requestPath (ItemTemplate.Prefab.path) can be `handguard_ak_izhmash_ak74m_std_plastic.bundle`
+    // which ignores additional bundle files, like:
+    // `handguard_ak_izhmash_ak74m_std_plastic_lod0_textures.bundle`
+    // `handguard_ak_izhmash_ak74m_std_plastic_mesh`
+    // this method simply searches for all files that contain the original bundle's name
+    static string[] GetPossibleFilePaths(string requestPath)
+    {
+        string directory = Path.GetDirectoryName(requestPath);
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(requestPath);
+
+        if (string.IsNullOrEmpty(directory) || string.IsNullOrEmpty(fileNameWithoutExtension))
+        {
+            return new string[0];
+        }
+
+        List<string> matchingFiles = new List<string>();
+        string[] allFiles;
+        try
+        {
+            allFiles = Directory.GetFiles(directory);
+            foreach (string filePath in allFiles)
+            {
+                string currentFileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
+                if (currentFileNameWithoutExtension.Contains(fileNameWithoutExtension))
+                {
+                    matchingFiles.Add(filePath);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.LogError(ex);
+        }
+
+        return matchingFiles.ToArray();
     }
 
     private static List<AssetItem> ParseAssets(AssetsManager assetsManager)
