@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using EFT;
 using UnityEngine;
 using gltfmod;
+using gltfmod.UI;
 using System;
 using System.Collections.Generic;
 
@@ -26,9 +27,7 @@ public class Plugin : BaseUnityPlugin
         new PatchGetExportSettingsForSlot().Enable();
         BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
 
-        GameObject yo = new GameObject("yo");
-        yo.AddComponent<ExportTest>();
-        DontDestroyOnLoad(yo);
+        new PatchItemSpecificationsPanel().Enable();
     }
 
     private void InitConfiguration()

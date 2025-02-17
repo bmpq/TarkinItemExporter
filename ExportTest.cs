@@ -10,39 +10,26 @@ using UnityGLTF;
 
 namespace gltfmod
 {
-    internal class ExportTest : MonoBehaviour
+    public static class Exporter
     {
-        public GameObject[] toExport;
-        public string outputPathDirName = "ExportedGLTF";
-        public string outputFileName = "exported_model";
-        public bool glb = false;
+        public static string outputFileName = "exported_model";
+        public static bool glb = false;
 
-        string PathExportDirectory
-        { 
-            get 
-            {
-                string path = Path.Combine(Application.persistentDataPath, outputPathDirName);
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-                return path;
-            } 
-        }
-        string PathExportFull => Path.Combine(PathExportDirectory, outputFileName);
-
-        void Update()
+        public static void ExportCurrentlyOpened(string pathOutputDir)
         {
-            if (Input.GetKeyUp(KeyCode.RightBracket))
-            {
-                NukeOutputDir();
-                StartCoroutine(TriggerExport());
-            }
+            CreateDirIfDoesntExist(pathOutputDir);
+            Export(GetCurrentlyOpenItems(), pathOutputDir);
         }
 
-        void NukeOutputDir()
+        static void CreateDirIfDoesntExist(string pathDir)
         {
-            var dirInfo = new DirectoryInfo(PathExportDirectory);
+            if (!Directory.Exists(pathDir))
+                Directory.CreateDirectory(pathDir);
+        }
+
+        static void NukeDir(string pathDir)
+        {
+            var dirInfo = new DirectoryInfo(pathDir);
 
             foreach (FileInfo file in dirInfo.GetFiles())
             {
@@ -51,10 +38,13 @@ namespace gltfmod
             }
         }
 
-        IEnumerator TriggerExport()
+        public static List<AssetPoolObject> GetCurrentlyOpenItems()
         {
-            List<AssetPoolObject> allItems = FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
+            return UnityEngine.Object.FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
+        }
 
+        public static void Export(List<AssetPoolObject> allItems, string pathDir)
+        {
             Plugin.Log.LogInfo($"Exporting {allItems.Count} items.");
 
             foreach (AssetPoolObject item in allItems)
@@ -63,9 +53,6 @@ namespace gltfmod
                 HandleLODs(item.gameObject);
             }
 
-            // in unity destroy is delayed until the end of the frame
-            yield return new WaitForEndOfFrame();
-
             HashSet<GameObject> uniqueRootNodes = new HashSet<GameObject>();
             foreach (AssetPoolObject item in allItems)
             {
@@ -73,24 +60,18 @@ namespace gltfmod
                     uniqueRootNodes.Add(item.transform.GetRoot().gameObject);
             }
 
-            yield return new WaitForEndOfFrame();
-
-            FailSafeDestroyAllUnreadableMesh(uniqueRootNodes);
-
-            yield return new WaitForEndOfFrame();
+            DisableAllUnreadableMesh(uniqueRootNodes);
 
             PreprocessMaterials(uniqueRootNodes);
 
-            yield return new WaitForEndOfFrame();
+            GameObject[] toExport = uniqueRootNodes.ToArray();
 
-            toExport = uniqueRootNodes.ToArray();
+            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
 
-            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {this.toExport.Length} root nodes");
-
-            Export_UnityGLTF(toExport);
+            Export_UnityGLTF(toExport, pathDir);
         }
 
-        void FailSafeDestroyAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
+        static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
         {
             foreach (GameObject rootNode in uniqueRootNodes)
             {
@@ -99,15 +80,15 @@ namespace gltfmod
                 {
                     if (!meshFilter.mesh.isReadable || meshFilter.mesh.vertexCount == 0)
                     {
-                        Debug.LogWarning($"{meshFilter.name} has an unreadable mesh, destroying it.");
-                        Destroy(meshFilter);
+                        Debug.LogWarning($"{meshFilter.name} has an unreadable mesh, disabling it.");
+                        meshFilter.gameObject.SetActive(false);
                     }
                 }
             }
         }
 
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
-        bool ReimportMeshAssetAndReplace(AssetPoolObject assetPoolObject)
+        static bool ReimportMeshAssetAndReplace(AssetPoolObject assetPoolObject)
         {
             try
             {
@@ -161,7 +142,7 @@ namespace gltfmod
             }
         }
 
-        public void HandleLODs(GameObject item)
+        static public void HandleLODs(GameObject item)
         {
             Plugin.Log.LogInfo($"Handling LODs in {item.name}...");
 
@@ -188,10 +169,10 @@ namespace gltfmod
                 }
             }
 
-            item.GetComponentsInChildren<LODGroup>().DestroyAll();
+            item.GetComponentsInChildren<LODGroup>().ToList().ForEach(l => l.enabled = false);
         }
 
-        void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
+        static void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
         {
             foreach (GameObject rootNode in uniqueRootNodes)
             {
@@ -212,7 +193,7 @@ namespace gltfmod
             }
         }
 
-        void Export_UnityGLTF(GameObject[] rootLevelNodes)
+        private static void Export_UnityGLTF(GameObject[] rootLevelNodes, string pathDir)
         {
             Transform[] toExport = rootLevelNodes.Select(go => go != null ? go.transform : null).ToArray();
 
@@ -228,14 +209,14 @@ namespace gltfmod
             {
                 if (glb)
                 {
-                    exporter.SaveGLB(PathExportDirectory, outputFileName);
+                    exporter.SaveGLB(pathDir, outputFileName);
                 }
                 else
                 {
-                    exporter.SaveGLTFandBin(PathExportDirectory, outputFileName, true);
+                    exporter.SaveGLTFandBin(pathDir, outputFileName, true);
                 }
 
-                Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + PathExportFull);
+                Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + Path.Combine(pathDir, outputFileName));
             }
             catch (Exception ex)
             {
