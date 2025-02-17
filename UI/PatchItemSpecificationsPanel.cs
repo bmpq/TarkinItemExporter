@@ -32,8 +32,17 @@ namespace gltfmod.UI
 
         private static void Export(Transform rootNode, Item item)
         {
+            Transform trToZero = rootNode;
+            for (int i = 0; i < 4; i++)
+            {
+                rootNode.localPosition = Vector3.zero;
+                rootNode.localRotation = Quaternion.identity;
+                rootNode.localScale = Vector3.zero;
+                trToZero = trToZero.GetChild(0);
+            }
+
             string filename = item.Name.Localized();
-            HashSet<GameObject> toExport = [rootNode.gameObject];
+            HashSet<GameObject> toExport = [trToZero.gameObject];
             Exporter.Export(toExport, System.IO.Path.Combine(Application.persistentDataPath, "ExportedGLTF"), filename);
         }
     }
