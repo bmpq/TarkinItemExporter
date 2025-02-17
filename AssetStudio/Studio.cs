@@ -68,20 +68,27 @@ public class Studio
             return new HashSet<string>();
         }
 
+        // if the requested bundle is a variant like:
+        // `receiver_extension_red`
+        // the mesh is in the other bundle
+        // `receiver_extension`
+        // the proper way to do this is to check bundle dependedncies, but I got no easy way to do that
+        string[] parts = fileNameWithoutExtension.Split('_');
+        string fileNameWithoutExtensionShortened = string.Join("_", parts.Take(Math.Max(0, parts.Length - 4)));;
+
         HashSet<string> matchingFiles = new HashSet<string>();
-        string[] allFiles;
+
         try
         {
-            allFiles = Directory.GetFiles(directory);
-            foreach (string filePath in allFiles)
+            foreach (string filePath in Directory.GetFiles(directory))
             {
-                string currentFileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
-                if (currentFileNameWithoutExtension.Contains(fileNameWithoutExtension))
+                if (Path.GetFileNameWithoutExtension(filePath).StartsWith(fileNameWithoutExtensionShortened))
                 {
                     matchingFiles.Add(filePath);
                 }
             }
-            
+
+            // additional unrelated bundle
             string clientAssetsPath = Path.Combine(directory, "client_assets.bundle");
             if (File.Exists(clientAssetsPath))
             {
