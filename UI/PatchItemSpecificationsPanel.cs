@@ -43,7 +43,7 @@ namespace gltfmod.UI
 
             string filename = item.Name.Localized();
             HashSet<GameObject> toExport = [trToZero.gameObject];
-            Exporter.Export(toExport, System.IO.Path.Combine(Application.persistentDataPath, "ExportedGLTF"), filename);
+            Exporter.Export(toExport, Plugin.OutputDir.Value, filename);
         }
     }
 }

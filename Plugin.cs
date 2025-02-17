@@ -7,6 +7,7 @@ using gltfmod;
 using gltfmod.UI;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 [BepInPlugin("com.tarkin.gltfmod", "gltfmod", "1.0.0.0")]
 public class Plugin : BaseUnityPlugin
@@ -14,6 +15,7 @@ public class Plugin : BaseUnityPlugin
     internal static new ManualLogSource Log;
 
     internal static ConfigEntry<bool> OverwriteTextureFiles;
+    internal static ConfigEntry<string> OutputDir;
 
     private void Awake()
     {
@@ -33,5 +35,6 @@ public class Plugin : BaseUnityPlugin
     private void InitConfiguration()
     {
         OverwriteTextureFiles = Config.Bind("Export", "OverwriteTextureFiles", true, "");
+        OutputDir = Config.Bind("Export", "OutputDir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Escape from Tarkov", "ExportedGLTF"), "");
     }
 }

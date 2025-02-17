@@ -217,6 +217,9 @@ namespace gltfmod
 
         private static void Export_UnityGLTF(GameObject[] rootLevelNodes, string pathDir, string filename)
         {
+            if (!Directory.Exists(pathDir))
+                Directory.CreateDirectory(pathDir);
+
             Transform[] toExport = rootLevelNodes.Select(go => go != null ? go.transform : null).ToArray();
 
             GLTFSettings gLTFSettings = GLTFSettings.GetOrCreateSettings();
@@ -239,6 +242,9 @@ namespace gltfmod
                 }
 
                 Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + Path.Combine(pathDir, filename));
+                NotificationManagerClass.DisplayMessageNotification(
+                    $"Successful export to {Path.Combine(pathDir, filename)}", 
+                    EFT.Communications.ENotificationDurationType.Long);
             }
             catch (Exception ex)
             {
