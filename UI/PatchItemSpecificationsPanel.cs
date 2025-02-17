@@ -63,7 +63,7 @@ namespace gltfmod.UI
                 trToZero = trToZero.GetChild(0);
             }
 
-            string filename = item.Name.Localized();
+            string filename = item.Name.Localized() + " " + item.GetHashSum();
             HashSet<GameObject> toExport = [trToZero.gameObject];
             Exporter.Export(toExport, Plugin.OutputDir.Value, filename);
         }
