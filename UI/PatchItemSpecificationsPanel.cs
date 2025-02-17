@@ -24,7 +24,13 @@ namespace gltfmod.UI
             SimpleContextMenuButton _buttonTemplate = (SimpleContextMenuButton)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate").GetValue(____interactionButtonsContainer);
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
 
-            SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", "Export as glTF", _buttonTemplate, _buttonsContainer, sprite, () => Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item), null, false, false);
+            SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", "Export as glTF", _buttonTemplate, _buttonsContainer, sprite, 
+                delegate 
+                { 
+                    Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item);
+                    __instance.Close();
+                }, 
+                null, false, false);
 
             // make the new button disposable
             ____interactionButtonsContainer.method_5(newButton);
