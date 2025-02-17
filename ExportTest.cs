@@ -130,9 +130,18 @@ namespace gltfmod
 
                     Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
 
-                    AssetItem assetItem = assets.FirstOrDefault(a => (a.Asset is AssetStudio.Mesh && a.Text == meshFilter.mesh.name));
+                    // matching by vertex count is more reliable than just by name
+                    // matching names still have higher priority, so the likelihood of selecting the wrong mesh is lessened
+                    AssetItem assetItem = assets
+                        .Where(asset => asset.Asset is AssetStudio.Mesh mesh &&
+                                        mesh.m_VertexCount == meshFilter.mesh.vertexCount)
+                        .OrderByDescending(asset => asset.Text == meshFilter.mesh.name)
+                        .FirstOrDefault();
                     if (assetItem == null)
+                    {
+                        Plugin.Log.LogError($"{meshFilter.name}: couldn't find replacement mesh!");
                         continue;
+                    }
 
                     AssetStudio.Mesh asMesh = assetItem.Asset as AssetStudio.Mesh;
                     if (asMesh == null)
