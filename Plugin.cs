@@ -12,6 +12,8 @@ public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;
 
+    internal static ConfigEntry<bool> OverwriteTextureFiles;
+
     private void Awake()
     {
         Log = base.Logger;
@@ -19,6 +21,7 @@ public class Plugin : BaseUnityPlugin
 
         InitConfiguration();
 
+        new PatchGetUniqueName().Enable();
         new PatchResourcesLoad().Enable();
         new PatchGetExportSettingsForSlot().Enable();
         BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
@@ -30,5 +33,6 @@ public class Plugin : BaseUnityPlugin
 
     private void InitConfiguration()
     {
+        OverwriteTextureFiles = Config.Bind("Export", "OverwriteTextureFiles", true, "");
     }
 }
