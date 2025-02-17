@@ -15,6 +15,7 @@ public class Plugin : BaseUnityPlugin
     internal static new ManualLogSource Log;
 
     internal static ConfigEntry<bool> OverwriteTextureFiles;
+    internal static ConfigEntry<bool> AllowLowTextures;
     internal static ConfigEntry<string> OutputDir;
 
     private void Awake()
@@ -35,6 +36,7 @@ public class Plugin : BaseUnityPlugin
     private void InitConfiguration()
     {
         OverwriteTextureFiles = Config.Bind("Export", "OverwriteTextureFiles", true, "");
+        AllowLowTextures = Config.Bind("Export", "AllowLowTextures", false, "Textures are taken from runtime material, so the exported textures depend on the game graphics setting");
         OutputDir = Config.Bind("Export", "OutputDir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Escape from Tarkov", "ExportedGLTF"), "");
     }
 }

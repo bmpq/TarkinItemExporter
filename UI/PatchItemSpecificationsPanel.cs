@@ -1,4 +1,5 @@
-﻿using EFT.InventoryLogic;
+﻿using Comfort.Common;
+using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.WeaponModding;
 using HarmonyLib;
@@ -32,8 +33,23 @@ namespace gltfmod.UI
                 }, 
                 null, false, false);
 
+            int textureQuality = Singleton<SharedGameSettingsClass>.Instance.Graphics.Settings.TextureQuality;
+            bool unlocked = textureQuality > 1 || Plugin.AllowLowTextures.Value;
+            SetExportButtonInteractable(newButton, unlocked);
+
             // make the new button disposable
             ____interactionButtonsContainer.method_5(newButton);
+        }
+
+        static void SetExportButtonInteractable(SimpleContextMenuButton newButton, bool interactable)
+        {
+            CanvasGroup newButtonGroup = (CanvasGroup)AccessTools.Field(typeof(SimpleContextMenuButton), "_canvasGroup").GetValue(newButton);
+            newButtonGroup.interactable = interactable;
+            newButtonGroup.alpha = interactable ? 1f : 0.3f;
+            // flag to enable tooltip
+            AccessTools.Field(typeof(SimpleContextMenuButton), "bool_1").SetValue(newButton, !interactable);
+            // tooltip string
+            AccessTools.Field(typeof(SimpleContextMenuButton), "string_0").SetValue(newButton, "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.");
         }
 
         private static void Export(Transform rootNode, Item item)
