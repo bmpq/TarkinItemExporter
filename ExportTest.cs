@@ -12,13 +12,12 @@ namespace gltfmod
 {
     public static class Exporter
     {
-        public static string outputFileName = "exported_model";
         public static bool glb = false;
 
         public static void ExportCurrentlyOpened(string pathOutputDir)
         {
             CreateDirIfDoesntExist(pathOutputDir);
-            Export(GetCurrentlyOpenItems(), pathOutputDir);
+            Export(GetCurrentlyOpenItems(), pathOutputDir, "exported_models");
         }
 
         static void CreateDirIfDoesntExist(string pathDir)
@@ -43,15 +42,9 @@ namespace gltfmod
             return UnityEngine.Object.FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
         }
 
-        public static void Export(List<AssetPoolObject> allItems, string pathDir)
+        public static void Export(List<AssetPoolObject> allItems, string pathDir, string filename)
         {
             Plugin.Log.LogInfo($"Exporting {allItems.Count} items.");
-
-            foreach (AssetPoolObject item in allItems)
-            {
-                // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
-                HandleLODs(item.gameObject);
-            }
 
             HashSet<GameObject> uniqueRootNodes = new HashSet<GameObject>();
             foreach (AssetPoolObject item in allItems)
@@ -59,6 +52,8 @@ namespace gltfmod
                 if (ReimportMeshAssetAndReplace(item))
                     uniqueRootNodes.Add(item.transform.GetRoot().gameObject);
             }
+
+            HandleLODs(uniqueRootNodes);
 
             DisableAllUnreadableMesh(uniqueRootNodes);
 
@@ -68,7 +63,30 @@ namespace gltfmod
 
             Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
 
-            Export_UnityGLTF(toExport, pathDir);
+            Export_UnityGLTF(toExport, pathDir, filename);
+        }
+
+        public static void Export(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
+        {
+            foreach (GameObject rootNode in uniqueRootNodes)
+            {
+                foreach (AssetPoolObject item in rootNode.GetComponentsInChildren<AssetPoolObject>())
+                {
+                    ReimportMeshAssetAndReplace(item);
+                }
+            }
+
+            HandleLODs(uniqueRootNodes);
+
+            DisableAllUnreadableMesh(uniqueRootNodes);
+
+            PreprocessMaterials(uniqueRootNodes);
+
+            GameObject[] toExport = uniqueRootNodes.ToArray();
+
+            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
+
+            Export_UnityGLTF(toExport, pathDir, filename);
         }
 
         static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
@@ -142,34 +160,38 @@ namespace gltfmod
             }
         }
 
-        static public void HandleLODs(GameObject item)
+        // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
+        static void HandleLODs(HashSet<GameObject> uniqueRootNodes)
         {
-            Plugin.Log.LogInfo($"Handling LODs in {item.name}...");
+            Plugin.Log.LogInfo($"Handling LODs...");
 
-            foreach (LODGroup lodGroup in item.GetComponentsInChildren<LODGroup>())
+            foreach (GameObject rootNode in uniqueRootNodes)
             {
-                LOD[] lods = lodGroup.GetLODs();
-                for (int i = 0; i < lods.Length; i++)
+                foreach (LODGroup lodGroup in rootNode.GetComponentsInChildren<LODGroup>())
                 {
-                    foreach (var rend in lods[i].renderers)
+                    LOD[] lods = lodGroup.GetLODs();
+                    for (int i = 0; i < lods.Length; i++)
                     {
-                        if (rend == null)
-                            continue;
-                        rend.enabled = i == 0;
+                        foreach (var rend in lods[i].renderers)
+                        {
+                            if (rend == null)
+                                continue;
+                            rend.enabled = i == 0;
+                        }
                     }
                 }
-            }
 
-            // don't need the shadow meshes either, they are lodded too
-            foreach (MeshRenderer meshRend in item.GetComponentsInChildren<MeshRenderer>())
-            {
-                if (meshRend.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                // don't need the shadow meshes either, they are lodded too
+                foreach (MeshRenderer meshRend in rootNode.GetComponentsInChildren<MeshRenderer>())
                 {
-                    meshRend.enabled = false;
+                    if (meshRend.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly)
+                    {
+                        meshRend.enabled = false;
+                    }
                 }
-            }
 
-            item.GetComponentsInChildren<LODGroup>().ToList().ForEach(l => l.enabled = false);
+                rootNode.GetComponentsInChildren<LODGroup>().ToList().ForEach(l => l.enabled = false);
+            }
         }
 
         static void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
@@ -193,7 +215,7 @@ namespace gltfmod
             }
         }
 
-        private static void Export_UnityGLTF(GameObject[] rootLevelNodes, string pathDir)
+        private static void Export_UnityGLTF(GameObject[] rootLevelNodes, string pathDir, string filename)
         {
             Transform[] toExport = rootLevelNodes.Select(go => go != null ? go.transform : null).ToArray();
 
@@ -209,14 +231,14 @@ namespace gltfmod
             {
                 if (glb)
                 {
-                    exporter.SaveGLB(pathDir, outputFileName);
+                    exporter.SaveGLB(pathDir, filename);
                 }
                 else
                 {
-                    exporter.SaveGLTFandBin(pathDir, outputFileName, true);
+                    exporter.SaveGLTFandBin(pathDir, filename, true);
                 }
 
-                Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + Path.Combine(pathDir, outputFileName));
+                Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + Path.Combine(pathDir, filename));
             }
             catch (Exception ex)
             {
