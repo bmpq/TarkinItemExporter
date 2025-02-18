@@ -79,6 +79,9 @@ namespace gltfmod
                 MeshFilter[] meshFilters = rootNode.GetComponentsInChildren<MeshFilter>();
                 foreach (var meshFilter in meshFilters)
                 {
+                    if (meshFilter.sharedMesh == null)
+                        continue;
+
                     if (!meshFilter.sharedMesh.isReadable || meshFilter.sharedMesh.vertexCount == 0)
                     {
                         Debug.LogWarning($"{meshFilter.name} has an unreadable mesh, disabling it.");
@@ -96,7 +99,7 @@ namespace gltfmod
             try
             {
                 MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters.All(meshFilter => meshFilter.sharedMesh.isReadable))
+                if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null || meshFilter.sharedMesh.isReadable))
                     return true;
 
                 Plugin.Log.LogInfo($"{assetPoolObject.name}: contains unreadable meshes. Loading its bundle file...");
@@ -109,6 +112,9 @@ namespace gltfmod
                 
                 foreach (var meshFilter in meshFilters)
                 {
+                    if (meshFilter.sharedMesh == null)
+                        continue;
+
                     if (meshFilter.sharedMesh.isReadable)
                         continue;
 
@@ -183,7 +189,7 @@ namespace gltfmod
                     }
                 }
 
-                rootNode.GetComponentsInChildren<LODGroup>().ToList().ForEach(l => l.enabled = false);
+                rootNode.GetComponentsInChildren<LODGroup>().ToList().ForEach(Component.DestroyImmediate);
             }
         }
 

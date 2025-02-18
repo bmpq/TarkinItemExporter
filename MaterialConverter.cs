@@ -21,8 +21,10 @@ namespace gltfmod
 
             try
             {
-                Color origColor = origMat.color;
                 Texture origTexMain = origMat.GetTexture("_MainTex");
+                if (origTexMain == null)
+                    return origMat;
+
                 if (cache.ContainsKey(origTexMain))
                 {
                     Material cached = cache[origTexMain];
@@ -53,6 +55,8 @@ namespace gltfmod
                     origTexNormal = origMat.GetTexture("_BumpMap");
 
                 Texture2D texSpecGlos = TextureConverter.ConvertAlbedoSpecGlosToSpecGloss(origTexMain, origTexGloss);
+
+                Color origColor = origMat.color;
 
                 // this material is from UnityGLTF package
                 Material newMat = UnityEngine.Object.Instantiate(BundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Material>("Standard (Specular setup)"));
