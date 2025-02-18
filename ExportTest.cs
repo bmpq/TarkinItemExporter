@@ -79,7 +79,7 @@ namespace gltfmod
                 MeshFilter[] meshFilters = rootNode.GetComponentsInChildren<MeshFilter>();
                 foreach (var meshFilter in meshFilters)
                 {
-                    if (!meshFilter.mesh.isReadable || meshFilter.mesh.vertexCount == 0)
+                    if (!meshFilter.sharedMesh.isReadable || meshFilter.sharedMesh.vertexCount == 0)
                     {
                         Debug.LogWarning($"{meshFilter.name} has an unreadable mesh, disabling it.");
                         meshFilter.gameObject.SetActive(false);
@@ -88,13 +88,15 @@ namespace gltfmod
             }
         }
 
+        static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
+
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
         static bool ReimportMeshAssetAndReplace(AssetPoolObject assetPoolObject)
         {
             try
             {
                 MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters.All(meshFilter => meshFilter.mesh.isReadable))
+                if (meshFilters.All(meshFilter => meshFilter.sharedMesh.isReadable))
                     return true;
 
                 Plugin.Log.LogInfo($"{assetPoolObject.name}: contains unreadable meshes. Loading its bundle file...");
@@ -107,8 +109,16 @@ namespace gltfmod
                 
                 foreach (var meshFilter in meshFilters)
                 {
-                    if (meshFilter.mesh.isReadable)
+                    if (meshFilter.sharedMesh.isReadable)
                         continue;
+
+                    int origMeshHash = meshFilter.sharedMesh.GetHashCode();
+                    if (cacheConvertedMesh.ContainsKey(origMeshHash))
+                    {
+                        meshFilter.sharedMesh = cacheConvertedMesh[origMeshHash];
+                        Plugin.Log.LogInfo($"{meshFilter.name}: found mesh already converted in cache");
+                        continue;
+                    }
 
                     Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
 
@@ -116,8 +126,8 @@ namespace gltfmod
                     // matching names still have higher priority, so the likelihood of selecting the wrong mesh is lessened
                     AssetItem assetItem = assets
                         .Where(asset => asset.Asset is AssetStudio.Mesh mesh &&
-                                        mesh.m_VertexCount == meshFilter.mesh.vertexCount)
-                        .OrderByDescending(asset => asset.Text == meshFilter.mesh.name)
+                                        mesh.m_VertexCount == meshFilter.sharedMesh.vertexCount)
+                        .OrderByDescending(asset => asset.Text == meshFilter.sharedMesh.name)
                         .FirstOrDefault();
                     if (assetItem == null)
                     {
@@ -126,10 +136,10 @@ namespace gltfmod
                     }
 
                     AssetStudio.Mesh asMesh = assetItem.Asset as AssetStudio.Mesh;
-                    if (asMesh == null)
-                        continue;
 
-                    meshFilter.mesh = asMesh.ConvertToUnityMesh();
+                    meshFilter.sharedMesh = asMesh.ConvertToUnityMesh();
+
+                    cacheConvertedMesh[origMeshHash] = meshFilter.sharedMesh;
 
                     Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
                 }
