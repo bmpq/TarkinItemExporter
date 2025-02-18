@@ -1,4 +1,5 @@
 ﻿using Comfort.Common;
+using EFT.AssetsManager;
 using EFT.InventoryLogic;
 using EFT.UI;
 using EFT.UI.WeaponModding;
@@ -25,7 +26,7 @@ namespace gltfmod.UI
             SimpleContextMenuButton _buttonTemplate = (SimpleContextMenuButton)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate").GetValue(____interactionButtonsContainer);
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
 
-            SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", "Export as glTF", _buttonTemplate, _buttonsContainer, sprite, 
+            SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", Plugin.TEXTBUTTON_EXPORT, _buttonTemplate, _buttonsContainer, sprite, 
                 delegate 
                 { 
                     Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item);
@@ -43,7 +44,7 @@ namespace gltfmod.UI
 
         static void SetExportButtonInteractable(SimpleContextMenuButton newButton, bool interactable)
         {
-            string tooltipBlocked = "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.";
+            string tooltipBlocked = Plugin.TEXTTOOLTIP_LOWTEX;
 
             IResult result = interactable 
                 ? new SuccessfulResult()
@@ -52,21 +53,13 @@ namespace gltfmod.UI
             newButton.SetButtonInteraction(result);
         }
 
-        private static void Export(Transform rootNode, Item item)
+        private static void Export(Transform rootNode, Item mainItem)
         {
-            Transform trToZero = rootNode;
-            for (int i = 0; i < 4; i++)
-            {
-                rootNode.localPosition = Vector3.zero;
-                rootNode.localRotation = Quaternion.identity;
-                rootNode.localScale = Vector3.zero;
-                trToZero = trToZero.GetChild(0);
-            }
-            
-            int persistentHash = GClass903.GetItemHash(item); // same hash used by icons
-            string filename = item.Name.Localized() + " " + persistentHash;
-            HashSet<GameObject> toExport = [trToZero.gameObject];
-            Exporter.Export(toExport, Plugin.OutputDir.Value, filename);
+            AssetPoolObject itemObject = rootNode.GetComponentInChildren<AssetPoolObject>();
+            itemObject.transform.ZeroTransformAndItsParents();
+
+            string filename = Exporter.GenerateHashedName(mainItem);
+            Exporter.Export([itemObject.gameObject], Plugin.OutputDir.Value, filename);
         }
     }
 }

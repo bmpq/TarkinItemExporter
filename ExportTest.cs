@@ -17,7 +17,7 @@ namespace gltfmod
         public static void ExportCurrentlyOpened(string pathOutputDir)
         {
             CreateDirIfDoesntExist(pathOutputDir);
-            Export(GetCurrentlyOpenItems(), pathOutputDir, "exported_models");
+            Export(GetCurrentlyOpenItems().Select(a => a.gameObject).ToHashSet(), pathOutputDir, "exported_models");
         }
 
         static void CreateDirIfDoesntExist(string pathDir)
@@ -42,28 +42,11 @@ namespace gltfmod
             return UnityEngine.Object.FindObjectsOfType<AssetPoolObject>().Where(o => o.gameObject.GetComponent<PreviewPivot>() != null).ToList();
         }
 
-        public static void Export(List<AssetPoolObject> allItems, string pathDir, string filename)
+        public static string GenerateHashedName(EFT.InventoryLogic.Item item)
         {
-            Plugin.Log.LogInfo($"Exporting {allItems.Count} items.");
-
-            HashSet<GameObject> uniqueRootNodes = new HashSet<GameObject>();
-            foreach (AssetPoolObject item in allItems)
-            {
-                if (ReimportMeshAssetAndReplace(item))
-                    uniqueRootNodes.Add(item.transform.GetRoot().gameObject);
-            }
-
-            HandleLODs(uniqueRootNodes);
-
-            DisableAllUnreadableMesh(uniqueRootNodes);
-
-            PreprocessMaterials(uniqueRootNodes);
-
-            GameObject[] toExport = uniqueRootNodes.ToArray();
-
-            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
-
-            Export_UnityGLTF(toExport, pathDir, filename);
+            int persistentHash = GClass903.GetItemHash(item); // same hash used by icons
+            string filename = item.Template._name + "_" + persistentHash;
+            return filename;
         }
 
         public static void Export(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
