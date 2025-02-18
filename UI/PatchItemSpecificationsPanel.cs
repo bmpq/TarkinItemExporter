@@ -43,13 +43,13 @@ namespace gltfmod.UI
 
         static void SetExportButtonInteractable(SimpleContextMenuButton newButton, bool interactable)
         {
-            CanvasGroup newButtonGroup = (CanvasGroup)AccessTools.Field(typeof(SimpleContextMenuButton), "_canvasGroup").GetValue(newButton);
-            newButtonGroup.interactable = interactable;
-            newButtonGroup.alpha = interactable ? 1f : 0.3f;
-            // flag to enable tooltip
-            AccessTools.Field(typeof(SimpleContextMenuButton), "bool_1").SetValue(newButton, !interactable);
-            // tooltip string
-            AccessTools.Field(typeof(SimpleContextMenuButton), "string_0").SetValue(newButton, "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.");
+            string tooltipBlocked = "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.";
+
+            IResult result = interactable 
+                ? new SuccessfulResult()
+                : new FailedResult(tooltipBlocked);
+
+            newButton.SetButtonInteraction(result);
         }
 
         private static void Export(Transform rootNode, Item item)
