@@ -62,8 +62,9 @@ namespace gltfmod.UI
                 rootNode.localScale = Vector3.zero;
                 trToZero = trToZero.GetChild(0);
             }
-
-            string filename = item.Name.Localized() + " " + item.GetHashSum();
+            
+            int persistentHash = GClass903.GetItemHash(item); // same hash used by icons
+            string filename = item.Name.Localized() + " " + persistentHash;
             HashSet<GameObject> toExport = [trToZero.gameObject];
             Exporter.Export(toExport, Plugin.OutputDir.Value, filename);
         }
