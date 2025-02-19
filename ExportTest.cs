@@ -14,12 +14,6 @@ namespace gltfmod
     {
         public static bool glb = false;
 
-        public static void ExportCurrentlyOpened(string pathOutputDir)
-        {
-            CreateDirIfDoesntExist(pathOutputDir);
-            Export(GetCurrentlyOpenItems().Select(a => a.gameObject).ToHashSet(), pathOutputDir, "exported_models");
-        }
-
         static void CreateDirIfDoesntExist(string pathDir)
         {
             if (!Directory.Exists(pathDir))
@@ -51,13 +45,7 @@ namespace gltfmod
 
         public static void Export(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
         {
-            foreach (GameObject rootNode in uniqueRootNodes)
-            {
-                foreach (AssetPoolObject item in rootNode.GetComponentsInChildren<AssetPoolObject>())
-                {
-                    ReimportMeshAssetAndReplace(item);
-                }
-            }
+            MeshReimporter.ReimportMeshAssetAndReplace(uniqueRootNodes);
 
             HandleLODs(uniqueRootNodes);
 
@@ -91,73 +79,6 @@ namespace gltfmod
             }
         }
 
-        static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
-
-        // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
-        static bool ReimportMeshAssetAndReplace(AssetPoolObject assetPoolObject)
-        {
-            try
-            {
-                MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null || meshFilter.sharedMesh.isReadable))
-                    return true;
-
-                Plugin.Log.LogInfo($"{assetPoolObject.name}: contains unreadable meshes. Loading its bundle file...");
-
-                FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
-                ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
-                string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
-
-                List<AssetItem> assets = Studio.LoadAssets(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
-                
-                foreach (var meshFilter in meshFilters)
-                {
-                    if (meshFilter.sharedMesh == null)
-                        continue;
-
-                    if (meshFilter.sharedMesh.isReadable)
-                        continue;
-
-                    int origMeshHash = meshFilter.sharedMesh.GetHashCode();
-                    if (cacheConvertedMesh.ContainsKey(origMeshHash))
-                    {
-                        meshFilter.sharedMesh = cacheConvertedMesh[origMeshHash];
-                        Plugin.Log.LogInfo($"{meshFilter.name}: found mesh already converted in cache");
-                        continue;
-                    }
-
-                    Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
-
-                    // matching by vertex count is more reliable than just by name
-                    // matching names still have higher priority, so the likelihood of selecting the wrong mesh is lessened
-                    AssetItem assetItem = assets
-                        .Where(asset => asset.Asset is AssetStudio.Mesh mesh &&
-                                        mesh.m_VertexCount == meshFilter.sharedMesh.vertexCount)
-                        .OrderByDescending(asset => asset.Text == meshFilter.sharedMesh.name)
-                        .FirstOrDefault();
-                    if (assetItem == null)
-                    {
-                        Plugin.Log.LogError($"{meshFilter.name}: couldn't find replacement mesh!");
-                        continue;
-                    }
-
-                    AssetStudio.Mesh asMesh = assetItem.Asset as AssetStudio.Mesh;
-
-                    meshFilter.sharedMesh = asMesh.ConvertToUnityMesh();
-
-                    cacheConvertedMesh[origMeshHash] = meshFilter.sharedMesh;
-
-                    Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Plugin.Log.LogError($"{assetPoolObject.name}: {ex}");
-                return false;
-            }
-        }
 
         // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
         static void HandleLODs(HashSet<GameObject> uniqueRootNodes)

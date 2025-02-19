@@ -9,28 +9,26 @@ public class Studio
 {
     static Dictionary<string, List<AssetItem>> fileCache = new Dictionary<string, List<AssetItem>>();
 
-    public static List<AssetItem> LoadAssets(string requestBundlePath, bool searchAdditional = true)
+    public static List<AssetItem> LoadAssets(HashSet<string> possibleFilePaths)
     {
         List<AssetItem> result = new List<AssetItem>();
 
-        requestBundlePath = Path.GetFullPath(requestBundlePath);
+        foreach (string filePath in possibleFilePaths.ToList())
+        {
+            possibleFilePaths.UnionWith(GetPossibleFilePaths(filePath));
+        }
 
-        HashSet<string> possibleFilePaths = [requestBundlePath];
-        if (searchAdditional)
-            possibleFilePaths.UnionWith(GetPossibleFilePaths(requestBundlePath));
-
-        List<string> pathAlreadyCached = new List<string>();
+        List<string> fileAlreadyLoaded = new List<string>();
         foreach (var path in possibleFilePaths)
         {
             string normPath = Path.GetFullPath(path);
             if (fileCache.ContainsKey(normPath))
             {
-                Plugin.Log.LogInfo($"Path found in cache: {normPath}");
                 result.AddRange(fileCache[normPath]);
-                pathAlreadyCached.Add(path);
+                fileAlreadyLoaded.Add(path);
             }
         }
-        possibleFilePaths.RemoveWhere(pathAlreadyCached.Contains);
+        possibleFilePaths.RemoveWhere(fileAlreadyLoaded.Contains);
 
         if (possibleFilePaths.Count == 0)
             return result;
@@ -103,6 +101,7 @@ public class Studio
         return matchingFiles;
     }
 
+    // this method is taken from AssetStudioCLI.Studio, stripped CLI filter options and skipping tree building
     private static List<AssetItem> ParseAssets(AssetsManager assetsManager)
     {
         Logger.Info("Parse assets...");
