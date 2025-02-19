@@ -30,7 +30,6 @@ namespace gltfmod.UI
                 delegate 
                 { 
                     Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item);
-                    __instance.GetComponent<InfoWindow>().CloseButton.onClick.Invoke();
                 }, 
                 null, false, false);
 

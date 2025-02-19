@@ -43,9 +43,23 @@ namespace gltfmod
             return filename;
         }
 
+        static Coroutine coroutineExport;
         public static void Export(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
         {
-            MeshReimporter.ReimportMeshAssetAndReplace(uniqueRootNodes);
+            if (coroutineExport != null)
+                CoroutineRunner.Instance.StopCoroutine(coroutineExport);
+
+            coroutineExport = CoroutineRunner.Instance.StartCoroutine(ExportCoroutine(uniqueRootNodes, pathDir, filename));
+        }
+
+        private static IEnumerator ExportCoroutine(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
+        {
+            MeshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
+
+            while (!MeshReimporter.Done)
+            {
+                yield return null;
+            }
 
             HandleLODs(uniqueRootNodes);
 
