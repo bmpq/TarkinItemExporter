@@ -7,6 +7,7 @@ using EFT.AssetsManager;
 using System.Reflection;
 using System.Collections;
 using UnityGLTF;
+using gltfmod.UI;
 
 namespace gltfmod
 {
@@ -54,6 +55,8 @@ namespace gltfmod
 
         private static IEnumerator ExportCoroutine(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
         {
+            ProgressScreen.Instance.ShowGameObject(true);
+
             MeshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
 
             while (!MeshReimporter.Done)
@@ -72,6 +75,8 @@ namespace gltfmod
             Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
 
             Export_UnityGLTF(toExport, pathDir, filename);
+
+            ProgressScreen.Instance.HideGameObject();
         }
 
         static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)

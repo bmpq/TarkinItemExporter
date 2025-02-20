@@ -21,10 +21,13 @@ public class Plugin : BaseUnityPlugin
     internal const string TEXTTOOLTIP_LOWTEX = "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.";
     internal const string TEXTBUTTON_EXPORT = "Export as glTF";
 
+    internal static bool InputBlocked;
+
     private void Awake()
     {
         Log = base.Logger;
         AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
+        AssetStudio.Progress.Default = new AssetStudio.ProgressLogger();
 
         InitConfiguration();
 
@@ -34,6 +37,7 @@ public class Plugin : BaseUnityPlugin
         BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
 
         new PatchItemSpecificationsPanel().Enable();
+        new PatchUIInput().Enable();
     }
 
     private void InitConfiguration()
