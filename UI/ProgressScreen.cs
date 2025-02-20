@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Diz.Utils;
 
 namespace gltfmod.UI
 {
@@ -69,6 +70,11 @@ namespace gltfmod.UI
         private TMP_Text textStatus;
 
         private void OnProgress(int value)
+        {
+            AsyncWorker.RunInMainTread(() => UpdateText(value));
+        }
+
+        private void UpdateText(int value)
         {
             textStatus.text = value.ToString();
         }
