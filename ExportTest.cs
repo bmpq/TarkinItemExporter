@@ -82,19 +82,30 @@ namespace gltfmod
                 DisableAllUnreadableMesh(uniqueRootNodes);
 
                 PreprocessMaterials(uniqueRootNodes);
-
-                GameObject[] toExport = uniqueRootNodes.ToArray();
-
-                Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
-
-                Export_UnityGLTF(toExport, pathDir, filename);
             }
-            catch
+            catch (Exception ex)
             {
                 ProgressScreen.Instance.HideGameObject();
-                Plugin.Log.LogInfo("Export failed: Error handling Unity objects.");
+                Plugin.Log.LogInfo($"Export failed: {ex}");
                 NotificationManagerClass.DisplayMessageNotification(
                     $"Export failed. Something went wrong while handling scene objects.",
+                    EFT.Communications.ENotificationDurationType.Long);
+            }
+
+            GameObject[] toExport = uniqueRootNodes.ToArray();
+            Plugin.Log.LogInfo("Writing to disk: " + Path.Combine(pathDir, filename));
+
+            yield return null;
+
+            try
+            {
+                Export_UnityGLTF(toExport, pathDir, filename);
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogInfo($"Export failed: {ex}");
+                NotificationManagerClass.DisplayMessageNotification(
+                    $"Export failed. UnityGLTF failure. Or writing to disk failure.",
                     EFT.Communications.ENotificationDurationType.Long);
             }
 

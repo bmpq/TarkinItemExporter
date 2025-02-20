@@ -50,11 +50,22 @@ namespace gltfmod.UI
             _instance.textStatus.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
             _instance.textStatus.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             _instance.textStatus.rectTransform.anchoredPosition = Vector2.zero;
+            _instance.textStatus.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            _instance.textStatus.fontSize = 12;
+
+            GameObject goProgressBar = new GameObject("Progress bar", typeof(RectTransform));
+            _instance.progressBar = goProgressBar.AddComponent<UIProgressBar>();
+            _instance.progressBar.transform.SetParent(_instance.transform, false);
+            _instance.progressBar.RectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            _instance.progressBar.RectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            _instance.progressBar.RectTransform.anchoredPosition = new Vector2(0, -30f);
+            _instance.progressBar.RectTransform.sizeDelta = new Vector2(300f, 10f);
         }
 
         void OnEnable()
         {
             UIEventSystem.Instance.Disable();
+            Plugin.Log.LogEvent += OnLog;
             AssetStudio.ProgressLogger.OnProgress += OnProgress;
             Plugin.InputBlocked = true;
         }
@@ -62,21 +73,32 @@ namespace gltfmod.UI
         void OnDisable()
         {
             UIEventSystem.Instance.Enable();
+            Plugin.Log.LogEvent -= OnLog;
             AssetStudio.ProgressLogger.OnProgress -= OnProgress;
             Plugin.InputBlocked = false;
         }
 
-
         private TMP_Text textStatus;
+        private UIProgressBar progressBar;
 
         private void OnProgress(int value)
         {
-            AsyncWorker.RunInMainTread(() => UpdateText(value));
+            AsyncWorker.RunInMainTread(() => UpdateProgressBar(value));
         }
 
-        private void UpdateText(int value)
+        private void OnLog(object sender, BepInEx.Logging.LogEventArgs e)
         {
-            textStatus.text = value.ToString();
+            AsyncWorker.RunInMainTread(() => UpdateText(e.Data.ToString()));
+        }
+
+        private void UpdateProgressBar(int value)
+        {
+            progressBar.SetProgress((float)value / 100f);
+        }
+
+        private void UpdateText(string value)
+        {
+            textStatus.text = value;
         }
 
         public override InputNode.ETranslateResult TranslateCommand(ECommand command)

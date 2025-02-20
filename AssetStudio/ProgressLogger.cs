@@ -13,7 +13,6 @@ namespace AssetStudio
         public void Report(int value)
         {
             OnProgress?.Invoke(value);
-            Plugin.Log.LogMessage(value);
         }
     }
 }
