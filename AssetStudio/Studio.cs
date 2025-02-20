@@ -9,9 +9,9 @@ public class Studio
 {
     static Dictionary<string, List<AssetItem>> fileCache = new Dictionary<string, List<AssetItem>>();
 
-    public static List<AssetItem> LoadAssets(HashSet<string> possibleFilePaths)
+    public static bool LoadAssets(HashSet<string> possibleFilePaths, out List<AssetItem> result)
     {
-        List<AssetItem> result = new List<AssetItem>();
+        result = new List<AssetItem>();
 
         foreach (string filePath in possibleFilePaths.ToList())
         {
@@ -31,24 +31,33 @@ public class Studio
         possibleFilePaths.RemoveWhere(fileAlreadyLoaded.Contains);
 
         if (possibleFilePaths.Count == 0)
-            return result;
+            return true;
 
         AssetsManager assetsManager = new AssetsManager();
         assetsManager.SpecifyUnityVersion = new UnityVersion(UnityEngine.Application.unityVersion);
-        assetsManager.LoadFilesAndFolders(possibleFilePaths.ToArray());
-        List<AssetItem> justLoaded = ParseAssets(assetsManager);
 
-        foreach (AssetItem asset in justLoaded)
+        try
         {
-            string normPath = Path.GetFullPath(asset.SourceFile.originalPath);
-            if (!fileCache.ContainsKey(normPath))
-                fileCache[normPath] = new List<AssetItem>();
-            fileCache[normPath].Add(asset);
+            assetsManager.LoadFilesAndFolders(possibleFilePaths.ToArray());
+            List<AssetItem> justLoaded = ParseAssets(assetsManager);
+
+            foreach (AssetItem asset in justLoaded)
+            {
+                string normPath = Path.GetFullPath(asset.SourceFile.originalPath);
+                if (!fileCache.ContainsKey(normPath))
+                    fileCache[normPath] = new List<AssetItem>();
+                fileCache[normPath].Add(asset);
+            }
+
+            result.AddRange(justLoaded);
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.LogError(ex);
+            return false;
         }
 
-        result.AddRange(justLoaded);
-
-        return result;
+        return true;
     }
 
     // requestPath (ItemTemplate.Prefab.path) can be `handguard_ak_izhmash_ak74m_std_plastic.bundle`

@@ -14,6 +14,7 @@ namespace gltfmod
     internal class MeshReimporter
     {
         public static bool Done;
+        public static bool Success;
 
         static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
 
@@ -21,6 +22,7 @@ namespace gltfmod
         public static void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
         {
             Done = false;
+            Success = false;
 
             List<AssetPoolObject> assetPoolObjects = uniqueRootNodes.SelectMany(rootNode => rootNode.GetComponentsInChildren<AssetPoolObject>()).ToList();
 
@@ -40,8 +42,14 @@ namespace gltfmod
 
             Task.Run(() =>
             {
-                List<AssetItem> assets = Studio.LoadAssets(pathsToLoad); // runs in background thread
-                AsyncWorker.RunInMainTread(() => ReplaceMesh(uniqueRootNodes, assets));
+                if (Studio.LoadAssets(pathsToLoad, out List<AssetItem> assets))
+                {
+                    AsyncWorker.RunInMainTread(() => ReplaceMesh(uniqueRootNodes, assets));
+                }
+                else
+                {
+                    Done = true;
+                }
             });
         }
 
@@ -88,6 +96,8 @@ namespace gltfmod
 
                     Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
                 }
+
+                Success = true;
             }
             catch (Exception ex)
             {

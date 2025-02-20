@@ -64,6 +64,17 @@ namespace gltfmod
                 yield return null;
             }
 
+            if (!MeshReimporter.Success)
+            {
+                ProgressScreen.Instance.HideGameObject();
+                Plugin.Log.LogInfo("Export failed.");
+                NotificationManagerClass.DisplayMessageNotification(
+                    $"Export failed.",
+                    EFT.Communications.ENotificationDurationType.Long);
+
+                yield break;
+            }
+
             HandleLODs(uniqueRootNodes);
 
             DisableAllUnreadableMesh(uniqueRootNodes);
