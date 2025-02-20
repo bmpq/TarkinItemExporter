@@ -67,25 +67,36 @@ namespace gltfmod
             if (!MeshReimporter.Success)
             {
                 ProgressScreen.Instance.HideGameObject();
-                Plugin.Log.LogInfo("Export failed.");
+                Plugin.Log.LogInfo("Export failed: Error loading bundles.");
                 NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed.",
+                    $"Export failed. Something went wrong loading bundle files.",
                     EFT.Communications.ENotificationDurationType.Long);
 
                 yield break;
             }
 
-            HandleLODs(uniqueRootNodes);
+            try // everything else is on main thread, since most of it Unity operations
+            {
+                HandleLODs(uniqueRootNodes);
 
-            DisableAllUnreadableMesh(uniqueRootNodes);
+                DisableAllUnreadableMesh(uniqueRootNodes);
 
-            PreprocessMaterials(uniqueRootNodes);
+                PreprocessMaterials(uniqueRootNodes);
 
-            GameObject[] toExport = uniqueRootNodes.ToArray();
+                GameObject[] toExport = uniqueRootNodes.ToArray();
 
-            Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
+                Plugin.Log.LogInfo($"Assets preprocessed. Attempting to export {toExport.Length} root nodes");
 
-            Export_UnityGLTF(toExport, pathDir, filename);
+                Export_UnityGLTF(toExport, pathDir, filename);
+            }
+            catch
+            {
+                ProgressScreen.Instance.HideGameObject();
+                Plugin.Log.LogInfo("Export failed: Error handling Unity objects.");
+                NotificationManagerClass.DisplayMessageNotification(
+                    $"Export failed. Something went wrong while handling scene objects.",
+                    EFT.Communications.ENotificationDurationType.Long);
+            }
 
             ProgressScreen.Instance.HideGameObject();
         }
