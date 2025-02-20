@@ -179,7 +179,7 @@ namespace gltfmod
                         if (mats[i] == null)
                             continue;
 
-                        mats[i] = mats[i].ConvertToSpecGlos();
+                        mats[i] = mats[i].ConvertToUnityGLTFCompatible();
                     }
 
                     rend.materials = mats;

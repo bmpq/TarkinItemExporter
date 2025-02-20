@@ -12,8 +12,23 @@ namespace gltfmod
         // caching is required if we want meshes in gltf with the same material to actually reference that material, and not have their own instance, having duplicated materials seems wrong
         static Dictionary<Texture, Material> cache = new Dictionary<Texture, Material>();
 
-        public static Material ConvertToSpecGlos(this Material origMat)
+        public static Material ConvertToUnityGLTFCompatible(this Material origMat)
         {
+            if (origMat.shader.name.Contains("CW FX/BackLens"))
+            {
+                origMat.shader = Shader.Find("Sprites/Default");
+                origMat.color = Color.black;
+
+                return origMat;
+            }
+
+            if (origMat.shader.name.Contains("Custom/OpticGlass"))
+            {
+                origMat.color = Color.black;
+
+                return origMat;
+            }
+
             if (!origMat.shader.name.Contains("Bumped Specular"))
                 return origMat;
 
