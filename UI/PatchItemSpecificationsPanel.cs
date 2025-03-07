@@ -55,6 +55,12 @@ namespace gltfmod.UI
         private static void Export(Transform rootNode, Item mainItem)
         {
             AssetPoolObject itemObject = rootNode.GetComponentInChildren<AssetPoolObject>();
+            if (itemObject == null)
+            {
+                Plugin.Log.LogError("Trying to export someting that doesn't have AssetPoolObject component!");
+                return;
+            }
+
             itemObject.transform.ZeroTransformAndItsParents();
 
             string filename = Exporter.GenerateHashedName(mainItem);

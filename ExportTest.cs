@@ -132,14 +132,17 @@ namespace gltfmod
         }
 
 
-        // UnityGLTF will attempt to use MSFT_lod and fail, it doesn't support multiple renderers per LOD, so we don't bother
+        // enabling highest LODs to export
         static void HandleLODs(HashSet<GameObject> uniqueRootNodes)
         {
             Plugin.Log.LogInfo($"Handling LODs...");
 
             foreach (GameObject rootNode in uniqueRootNodes)
             {
-                foreach (LODGroup lodGroup in rootNode.GetComponentsInChildren<LODGroup>())
+                LODGroup[] lodGroups = rootNode.GetComponentsInChildren<LODGroup>();
+                lodGroups.ToList().ForEach(l => l.enabled = false);
+
+                foreach (LODGroup lodGroup in lodGroups)
                 {
                     LOD[] lods = lodGroup.GetLODs();
                     for (int i = 0; i < lods.Length; i++)
@@ -161,8 +164,6 @@ namespace gltfmod
                         meshRend.enabled = false;
                     }
                 }
-
-                rootNode.GetComponentsInChildren<LODGroup>().ToList().ForEach(Component.DestroyImmediate);
             }
         }
 
