@@ -73,6 +73,8 @@ namespace gltfmod.UI
 
         void OnEnable()
         {
+            transform.localScale = Vector3.one;
+
             UIEventSystem.Instance.Disable();
             Plugin.Log.LogEvent += OnLog;
             AssetStudio.ProgressLogger.OnProgress += OnProgress;
