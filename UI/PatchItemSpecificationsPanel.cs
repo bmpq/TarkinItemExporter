@@ -27,8 +27,9 @@ namespace gltfmod.UI
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
 
             SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", Plugin.TEXTBUTTON_EXPORT, _buttonTemplate, _buttonsContainer, sprite, 
-                delegate 
-                { 
+                delegate
+                {
+                    Exporter.CallbackFinished = () => __instance.GetComponent<InfoWindow>().Close();
                     Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item);
                 }, 
                 null, false, false);

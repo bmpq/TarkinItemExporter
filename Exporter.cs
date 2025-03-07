@@ -13,6 +13,8 @@ namespace gltfmod
 {
     public static class Exporter
     {
+        public static Action CallbackFinished;
+
         public static bool glb = false;
 
         static void CreateDirIfDoesntExist(string pathDir)
@@ -223,6 +225,9 @@ namespace gltfmod
             {
                 Plugin.Log.LogError(ex);
             }
+
+            CallbackFinished?.Invoke();
+            CallbackFinished = null;
         }
     }
 }
