@@ -60,6 +60,15 @@ namespace gltfmod.UI
             _instance.progressBar.RectTransform.anchorMax = new Vector2(0.5f, 0.5f);
             _instance.progressBar.RectTransform.anchoredPosition = new Vector2(0, -30f);
             _instance.progressBar.RectTransform.sizeDelta = new Vector2(300f, 10f);
+
+            GameObject goProgressText = new GameObject("Progress text");
+            goProgressText.transform.SetParent(_instance.transform);
+            _instance.textProgress = goProgressText.AddComponent<TextMeshProUGUI>();
+            _instance.textProgress.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            _instance.textProgress.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            _instance.textProgress.rectTransform.anchoredPosition = new Vector2(0, -80f);
+            _instance.textProgress.horizontalAlignment = HorizontalAlignmentOptions.Center;
+            _instance.textProgress.fontSize = 12;
         }
 
         void OnEnable()
@@ -79,6 +88,7 @@ namespace gltfmod.UI
         }
 
         private TMP_Text textStatus;
+        private TMP_Text textProgress;
         private UIProgressBar progressBar;
 
         private void OnProgress(int value)
@@ -94,6 +104,7 @@ namespace gltfmod.UI
         private void UpdateProgressBar(int value)
         {
             progressBar.SetProgress((float)value / 100f);
+            textProgress.text = value + "%";
         }
 
         private void UpdateText(string value)
