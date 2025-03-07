@@ -39,7 +39,7 @@ namespace gltfmod
 
         public static string GenerateHashedName(EFT.InventoryLogic.Item item)
         {
-            int persistentHash = GClass903.GetItemHash(item); // same hash used by icons
+            int persistentHash = GClass906.GetItemHash(item); // same hash used by icons
             string filename = item.Template._name + "_" + persistentHash;
             return filename;
         }
