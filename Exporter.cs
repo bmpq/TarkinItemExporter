@@ -57,6 +57,9 @@ namespace gltfmod
 
         private static IEnumerator ExportCoroutine(HashSet<GameObject> uniqueRootNodes, string pathDir, string filename)
         {
+            float origTimeScale = Time.timeScale;
+            Time.timeScale = 0f;
+
             ProgressScreen.Instance.ShowGameObject(true);
 
             MeshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
@@ -112,6 +115,8 @@ namespace gltfmod
             }
 
             ProgressScreen.Instance.HideGameObject();
+
+            Time.timeScale = origTimeScale;
         }
 
         static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
