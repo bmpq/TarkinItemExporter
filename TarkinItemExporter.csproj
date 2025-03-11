@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyName>gltfmod</AssemblyName>
-    <Description>gltfmod</Description>
+    <AssemblyName>TarkinItemExporter</AssemblyName>
     <Version>1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
@@ -135,6 +134,6 @@
   </ItemGroup>
 
   <Target Name="CopyDllAfterBuild" AfterTargets="Build">
-    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SPTPath)\BepInEx\plugins\tarkin" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SPTPath)\BepInEx\plugins\tarkin\ItemExporter" />
   </Target>
 </Project>

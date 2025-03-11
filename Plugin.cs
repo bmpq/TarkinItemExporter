@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-[BepInPlugin("com.tarkin.gltfmod", "gltfmod", "1.0.0.0")]
+[BepInPlugin("com.tarkin.itemexporter", "TarkinItemExporter", "1.0.0.0")]
 public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;

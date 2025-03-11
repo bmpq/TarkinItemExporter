@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gltfmod", "gltfmod.csproj", "{C2270390-8146-4F3C-B2BA-AA2785191FF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TarkinItemExporter", "TarkinItemExporter.csproj", "{90D9D9C4-7E6B-443D-B227-420C19F4497A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C2270390-8146-4F3C-B2BA-AA2785191FF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C2270390-8146-4F3C-B2BA-AA2785191FF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C2270390-8146-4F3C-B2BA-AA2785191FF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C2270390-8146-4F3C-B2BA-AA2785191FF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90D9D9C4-7E6B-443D-B227-420C19F4497A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90D9D9C4-7E6B-443D-B227-420C19F4497A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90D9D9C4-7E6B-443D-B227-420C19F4497A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90D9D9C4-7E6B-443D-B227-420C19F4497A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {61043964-A298-4C0B-9791-F7F44EA5669D}
+		SolutionGuid = {2EE431BA-79E2-45BF-902F-41DB9CAF2924}
 	EndGlobalSection
 EndGlobal
