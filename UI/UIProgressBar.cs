@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace gltfmod.UI
+namespace TarkinItemExporter.UI
 {
     public class UIProgressBar : MonoBehaviour
     {

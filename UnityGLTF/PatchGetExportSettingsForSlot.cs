@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityGLTF;
 using static UnityGLTF.GLTFSceneExporter;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     internal class PatchGetExportSettingsForSlot : ModulePatch
     {

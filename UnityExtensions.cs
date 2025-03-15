@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     internal static class UnityExtensions
     {

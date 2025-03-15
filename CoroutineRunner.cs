@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     public class CoroutineRunner : MonoBehaviour
     {

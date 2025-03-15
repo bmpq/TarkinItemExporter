@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Diz.Utils;
 
-namespace gltfmod.UI
+namespace TarkinItemExporter.UI
 {
     internal class ProgressScreen : UIScreen
     {

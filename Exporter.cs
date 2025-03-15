@@ -7,9 +7,9 @@ using EFT.AssetsManager;
 using System.Reflection;
 using System.Collections;
 using UnityGLTF;
-using gltfmod.UI;
+using TarkinItemExporter.UI;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     public static class Exporter
     {

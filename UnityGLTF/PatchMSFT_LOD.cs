@@ -4,7 +4,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityGLTF.Plugins;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     internal class PatchMSFT_LOD : ModulePatch
     {

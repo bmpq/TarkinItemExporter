@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace gltfmod.UI
+namespace TarkinItemExporter.UI
 {
     internal class PatchItemSpecificationsPanel : ModulePatch
     {

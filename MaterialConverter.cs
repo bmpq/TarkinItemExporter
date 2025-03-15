@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     public static class MaterialConverter
     {

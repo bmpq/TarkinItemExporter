@@ -6,7 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityGLTF;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     // Allow UnityGLTF to overwrite texture files with the same name
     internal class PatchGetUniqueName : ModulePatch

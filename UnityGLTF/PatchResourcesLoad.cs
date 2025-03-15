@@ -4,7 +4,7 @@ using System;
 using System.Reflection;
 using UnityEngine;
 
-namespace gltfmod
+namespace TarkinItemExporter
 {
     /// <summary>
     /// UnityGLTF expects `NormalChannel.shader` to be packed with game build in `Resources/`
