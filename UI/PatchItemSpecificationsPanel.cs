@@ -7,6 +7,7 @@ using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Collections.Generic;
 using System.Reflection;
+using tarkin;
 using UnityEngine;
 
 namespace TarkinItemExporter.UI
@@ -21,7 +22,7 @@ namespace TarkinItemExporter.UI
         [PatchPostfix]
         private static void PatchPostfix(ItemSpecificationPanel __instance, ItemContextAbstractClass itemContext, InteractionButtonsContainer ____interactionButtonsContainer, WeaponPreview ___weaponPreview_0)
         {
-            Sprite sprite = CacheResourcesPopAbstractClass.Pop<Sprite>("UI/Icons/handbook/icon_gear_cases");
+            Sprite sprite = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Sprite>("saveicon");
 
             SimpleContextMenuButton _buttonTemplate = (SimpleContextMenuButton)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate").GetValue(____interactionButtonsContainer);
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
