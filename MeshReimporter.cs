@@ -1,44 +1,75 @@
 ﻿using Diz.Utils;
 using EFT.AssetsManager;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace TarkinItemExporter
 {
-    internal class MeshReimporter
+    public class MeshReimporter
     {
-        public static bool Done;
-        public static bool Success;
+        public bool Done;
+        public bool Success;
+        public string ErrorMessage;
 
         static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
 
+        FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
+
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
-        public static void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
+        public void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
         {
             Done = false;
             Success = false;
+            ErrorMessage = null;
+
+            if (uniqueRootNodes == null || uniqueRootNodes.Count == 0)
+            {
+                Done = true;
+                Success = false;
+                ErrorMessage = "No root nodes provided.";
+                return;
+            }
 
             List<AssetPoolObject> assetPoolObjects = uniqueRootNodes.SelectMany(rootNode => rootNode.GetComponentsInChildren<AssetPoolObject>()).ToList();
-
-            FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
             HashSet<string> pathsToLoad = new HashSet<string>();
-            foreach (var assetPoolObject in assetPoolObjects)
-            {
-                MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
-                if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null || meshFilter.sharedMesh.isReadable))
-                    continue;
 
-                ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
-                string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
-                string osPath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
-                pathsToLoad.Add(osPath);
+            try
+            {
+                foreach (var assetPoolObject in assetPoolObjects)
+                {
+                    MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
+                    if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null || meshFilter.sharedMesh.isReadable))
+                        continue;
+
+                    ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
+                    if (resourceValue.ItemTemplate == null || resourceValue.ItemTemplate.Prefab == null)
+                        continue;
+                    string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
+                    string osPath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
+
+                    if (!File.Exists(osPath))
+                    {
+                        Plugin.Log.LogError($"File doesn't exist: {osPath}");
+                        continue;
+                    }
+                    pathsToLoad.Add(osPath);
+                }
             }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Error preparing asset paths: {ex.Message}";
+                Done = true;
+                Success = false;
+                Plugin.Log.LogError(ex);
+                return;
+            }
+
 
             Task.Run(() =>
             {
@@ -48,12 +79,26 @@ namespace TarkinItemExporter
                 }
                 else
                 {
-                    Done = true;
+                    AsyncWorker.RunInMainTread(() => {
+                        ErrorMessage = "Failed to load assets with AssetStudio.";
+                        Done = true;
+                        Success = false;
+                    });
+                }
+            }).ContinueWith(task => {
+                if (task.IsFaulted)
+                {
+                    AsyncWorker.RunInMainTread(() => {
+                        ErrorMessage = $"Error in AssetStudio task: {task.Exception.InnerException?.Message ?? task.Exception.Message}";
+                        Done = true;
+                        Success = false;
+                        Plugin.Log.LogError(task.Exception);
+                    });
                 }
             });
         }
-
-        private static void ReplaceMesh(HashSet<GameObject> uniqueRootNodes, List<AssetItem> assets)
+        
+        private void ReplaceMesh(HashSet<GameObject> uniqueRootNodes, List<AssetItem> assets)
         {
             try
             {
@@ -101,10 +146,14 @@ namespace TarkinItemExporter
             }
             catch (Exception ex)
             {
+                ErrorMessage = $"Error replacing meshes: {ex.Message}";
+                Success = false;
                 Plugin.Log.LogError(ex);
             }
-
-            Done = true;
+            finally
+            {
+                Done = true;
+            }
         }
     }
 }

@@ -8,9 +8,10 @@ using TarkinItemExporter.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using tarkin;
 
 [BepInPlugin("com.tarkin.itemexporter", "TarkinItemExporter", "1.0.0.0")]
-public class Plugin : BaseUnityPlugin
+internal class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;
 
@@ -35,7 +36,7 @@ public class Plugin : BaseUnityPlugin
         new PatchMSFT_LOD().Enable();
         new PatchResourcesLoad().Enable();
         new PatchGetExportSettingsForSlot().Enable();
-        BundleShaders.Add(AssetBundleLoader.BundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
+        BundleShaders.Add(AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
 
         new PatchItemSpecificationsPanel().Enable();
         new PatchUIInput().Enable();

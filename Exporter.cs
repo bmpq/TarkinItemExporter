@@ -62,14 +62,16 @@ namespace TarkinItemExporter
 
             ProgressScreen.Instance.ShowGameObject(true);
 
-            MeshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
+            MeshReimporter meshReimporter = new MeshReimporter();
 
-            while (!MeshReimporter.Done)
+            meshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
+
+            while (!meshReimporter.Done)
             {
                 yield return null;
             }
 
-            if (!MeshReimporter.Success)
+            if (!meshReimporter.Success)
             {
                 ProgressScreen.Instance.HideGameObject();
                 Plugin.Log.LogInfo("Export failed: Error loading bundles.");
@@ -119,7 +121,7 @@ namespace TarkinItemExporter
             Time.timeScale = origTimeScale;
         }
 
-        static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
+        public static void DisableAllUnreadableMesh(HashSet<GameObject> uniqueRootNodes)
         {
             foreach (GameObject rootNode in uniqueRootNodes)
             {
@@ -140,7 +142,7 @@ namespace TarkinItemExporter
 
 
         // enabling highest LODs to export
-        static void HandleLODs(HashSet<GameObject> uniqueRootNodes)
+        public static void HandleLODs(HashSet<GameObject> uniqueRootNodes)
         {
             Plugin.Log.LogInfo($"Handling LODs...");
 
@@ -174,7 +176,7 @@ namespace TarkinItemExporter
             }
         }
 
-        static void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
+        public static void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
         {
             foreach (GameObject rootNode in uniqueRootNodes)
             {

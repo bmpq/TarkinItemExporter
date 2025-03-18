@@ -1,4 +1,4 @@
-﻿using AssetBundleLoader;
+﻿using tarkin;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -74,7 +74,7 @@ namespace TarkinItemExporter
                 Color origColor = origMat.color;
 
                 // this material is from UnityGLTF package
-                Material newMat = UnityEngine.Object.Instantiate(BundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Material>("Standard (Specular setup)"));
+                Material newMat = UnityEngine.Object.Instantiate(AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Material>("Standard (Specular setup)"));
 
                 newMat.SetColor("_Color", origColor);
                 newMat.SetTexture("_MainTex", origTexMain);
