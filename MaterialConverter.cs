@@ -73,17 +73,19 @@ namespace TarkinItemExporter
 
                 Color origColor = origMat.color;
 
-                // this material is from UnityGLTF package
-                Material newMat = UnityEngine.Object.Instantiate(AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Material>("Standard (Specular setup)"));
+                // this material is not for rendering, but only to store the textures, and for the names of the fields to be in a format that UnityGLTF can parse
+                Material newMat = new Material(BundleShaders.Find("Hidden/DummySpecularOpaque"));
+
+                newMat.EnableKeyword("_NORMALMAP");
+                newMat.EnableKeyword("_SPECGLOSSMAP");
+                newMat.EnableKeyword("_EMISSION");
+                newMat.EnableKeyword("_BUMPMAP");
 
                 newMat.SetColor("_Color", origColor);
                 newMat.SetTexture("_MainTex", origTexMain);
                 newMat.SetTexture("_SpecGlossMap", texSpecGlos);
                 newMat.SetColor("_SpecColor", Color.white);
                 newMat.SetTexture("_BumpMap", origTexNormal);
-
-                newMat.EnableKeyword("_SPECGLOSSMAP");
-                newMat.EnableKeyword("_NORMALMAP");
 
                 if (origMat.HasProperty("_EmissionMap"))
                 {
