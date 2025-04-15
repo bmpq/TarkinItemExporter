@@ -73,9 +73,9 @@ namespace TarkinItemExporter
                     origTexNormal = origMat.GetTexture("_BumpMap");
 
                 // somewhere the texture reference breaks if there are spaces or dots
-                origTexMain.name = origTexMain.name.Replace(' ', '_').Replace(".", "_");
-                origTexGloss.name = origTexGloss.name.Replace(' ', '_').Replace(".", "_");
-                origTexNormal.name = origTexNormal.name.Replace(' ', '_').Replace(".", "_");
+                origTexMain.name = SanitizeName(origTexMain.name);
+                origTexGloss.name = SanitizeName(origTexGloss.name);
+                origTexNormal.name = SanitizeName(origTexNormal.name);
 
                 Texture2D texSpecGlos = TextureConverter.ConvertAlbedoSpecGlosToSpecGloss(origTexMain, origTexGloss);
 
@@ -97,7 +97,9 @@ namespace TarkinItemExporter
 
                 if (origMat.HasProperty("_EmissionMap"))
                 {
-                    newMat.SetTexture("_EmissionMap", origMat.GetTexture("_EmissionMap"));
+                    Texture emissionMap = origMat.GetTexture("_EmissionMap");
+                    emissionMap.name = SanitizeName(emissionMap.name);
+                    newMat.SetTexture("_EmissionMap", emissionMap);
                     Color color = Color.white * origMat.GetFloat("_EmissionPower");
                     newMat.SetColor("_EmissionColor", color);
                 }
@@ -117,6 +119,30 @@ namespace TarkinItemExporter
                 Debug.LogError(ex);
                 return origMat;
             }
+        }
+
+        public static string SanitizeName(string inputName, char replacementChar = '_')
+        {
+            if (string.IsNullOrEmpty(inputName))
+            {
+                return "Unnamed_Texture";
+            }
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(inputName.Length);
+
+            foreach (char c in inputName)
+            {
+                if (char.IsLetterOrDigit(c) || c == replacementChar)
+                {
+                    sb.Append(c);
+                }
+                else
+                {
+                    sb.Append(replacementChar);
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }
