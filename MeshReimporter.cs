@@ -50,15 +50,25 @@ namespace TarkinItemExporter
                     ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
                     if (resourceValue.ItemTemplate == null || resourceValue.ItemTemplate.Prefab == null)
                         continue;
-                    string pathBundle = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
-                    string osPath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", pathBundle));
+                    string resourcePath = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
+                    string vanillaFullpath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", resourcePath));
 
-                    if (!File.Exists(osPath))
+                    if (File.Exists(vanillaFullpath))
                     {
-                        Plugin.Log.LogError($"File doesn't exist: {osPath}");
-                        continue;
+                        pathsToLoad.Add(vanillaFullpath);
                     }
-                    pathsToLoad.Add(osPath);
+
+                    DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
+                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "user", "mods");
+                    foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
+                    {
+                        string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
+
+                        if (File.Exists(potentialModPath))
+                        {
+                            pathsToLoad.Add(potentialModPath);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

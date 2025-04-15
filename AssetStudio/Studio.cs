@@ -15,7 +15,7 @@ public class Studio
 
         foreach (string filePath in possibleFilePaths.ToList())
         {
-            possibleFilePaths.UnionWith(GetPossibleFilePaths(filePath));
+            possibleFilePaths.UnionWith(GetPathsBundleDependencies(filePath));
         }
 
         List<string> fileAlreadyLoaded = new List<string>();
@@ -65,7 +65,7 @@ public class Studio
     // `handguard_ak_izhmash_ak74m_std_plastic_lod0_textures.bundle`
     // `handguard_ak_izhmash_ak74m_std_plastic_mesh`
     // this method simply searches for all files that contain the original bundle's name
-    static HashSet<string> GetPossibleFilePaths(string requestPath)
+    static HashSet<string> GetPathsBundleDependencies(string requestPath)
     {
         string directory = Path.GetDirectoryName(requestPath);
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(requestPath);
