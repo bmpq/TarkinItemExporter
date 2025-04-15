@@ -34,7 +34,6 @@ public class Studio
             return true;
 
         AssetsManager assetsManager = new AssetsManager();
-        assetsManager.SpecifyUnityVersion = new UnityVersion(UnityEngine.Application.unityVersion);
 
         try
         {
