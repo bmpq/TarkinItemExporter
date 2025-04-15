@@ -30,7 +30,10 @@ namespace TarkinItemExporter
             }
 
             if (!origMat.shader.name.Contains("Bumped Specular"))
+            {
+                Plugin.Log.LogWarning($"{origMat.name}: unsupported shader! ({origMat.shader.name})");
                 return origMat;
+            }
 
             Plugin.Log.LogInfo($"{origMat.name}: converting to gltf specular-gloss...");
 
@@ -68,6 +71,11 @@ namespace TarkinItemExporter
                     origTexNormal = Texture2D.normalTexture;
                 else
                     origTexNormal = origMat.GetTexture("_BumpMap");
+
+                // somewhere the texture reference breaks if there are spaces or dots
+                origTexMain.name = origTexMain.name.Replace(' ', '_').Replace(".", "_");
+                origTexGloss.name = origTexGloss.name.Replace(' ', '_').Replace(".", "_");
+                origTexNormal.name = origTexNormal.name.Replace(' ', '_').Replace(".", "_");
 
                 Texture2D texSpecGlos = TextureConverter.ConvertAlbedoSpecGlosToSpecGloss(origTexMain, origTexGloss);
 
