@@ -54,7 +54,7 @@ namespace TarkinItemExporter
                 {
                     float glos = origMat.GetFloat("_Shininess");
                     origTexGloss = TextureConverter.CreateSolidColorTexture(origTexMain.width, origTexMain.height, glos, 1f);
-                    origTexGloss.name = origTexMain.name.ReplaceLastWord('_', "GLOSSINESS");
+                    origTexGloss.name = origTexMain.name + "_GLOSSINESS";
 
                     Material mat = new Material(BundleShaders.Find("Hidden/SetAlpha"));
                     mat.SetFloat("_Alpha", origMat.GetColor("_SpecColor").r);

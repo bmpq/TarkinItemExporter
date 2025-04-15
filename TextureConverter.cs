@@ -45,7 +45,7 @@ namespace TarkinItemExporter
             Graphics.Blit(inputTextureAlbedoSpec, temporary, mat);
 
             Texture2D convertedTexture = temporary.ToTexture2D();
-            convertedTexture.name = ReplaceLastWord(inputTextureAlbedoSpec.name, '_', "SPECGLOS");
+            convertedTexture.name += inputTextureAlbedoSpec.name + "_SPECGLOS";
 
             RenderTexture.ReleaseTemporary(temporary);
             GL.sRGBWrite = sRGBWrite;
@@ -63,16 +63,6 @@ namespace TarkinItemExporter
             tex.Apply();
 
             return tex;
-        }
-
-        public static string ReplaceLastWord(this string input, char separator, string replacement)
-        {
-            int lastIndex = input.LastIndexOf(separator);
-            if (lastIndex == -1)
-            {
-                return replacement;
-            }
-            return input.Substring(0, lastIndex + 1) + replacement;
         }
 
         public static Texture2D CreateSolidColorTexture(int width, int height, float r, float g, float b, float a)
