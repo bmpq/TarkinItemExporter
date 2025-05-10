@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Collections;
 using UnityGLTF;
 using TarkinItemExporter.UI;
+using UnityGLTF.Plugins;
 
 namespace TarkinItemExporter
 {
@@ -87,8 +88,6 @@ namespace TarkinItemExporter
                 HandleLODs(uniqueRootNodes);
 
                 DisableAllUnreadableMesh(uniqueRootNodes);
-
-                PreprocessMaterials(uniqueRootNodes);
             }
             catch (Exception ex)
             {
@@ -176,27 +175,6 @@ namespace TarkinItemExporter
             }
         }
 
-        public static void PreprocessMaterials(HashSet<GameObject> uniqueRootNodes)
-        {
-            foreach (GameObject rootNode in uniqueRootNodes)
-            {
-                foreach (var rend in rootNode.GetComponentsInChildren<Renderer>())
-                {
-                    Material[] mats = rend.materials;
-
-                    for (int i = 0; i < mats.Length; i++)
-                    {
-                        if (mats[i] == null)
-                            continue;
-
-                        mats[i] = mats[i].ConvertToUnityGLTFCompatible();
-                    }
-
-                    rend.materials = mats;
-                }
-            }
-        }
-
         private static void Export_UnityGLTF(GameObject[] rootLevelNodes, string pathDir, string filename)
         {
             if (!Directory.Exists(pathDir))
@@ -208,6 +186,11 @@ namespace TarkinItemExporter
             gLTFSettings.ExportDisabledGameObjects = false;
             gLTFSettings.RequireExtensions = true;
             gLTFSettings.UseTextureFileTypeHeuristic = false;
+            gLTFSettings.ExportPlugins = new List<GLTFExportPlugin>
+            {
+                ScriptableObject.CreateInstance(typeof(TarkovMaterialExport)) as TarkovMaterialExport,
+                ScriptableObject.CreateInstance(typeof(SanitizeTextureNames)) as SanitizeTextureNames
+            };
 
             ExportContext context = new ExportContext(gLTFSettings);
             GLTFSceneExporter exporter = new GLTFSceneExporter(toExport, context);
