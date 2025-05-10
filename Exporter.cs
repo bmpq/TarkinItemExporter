@@ -66,7 +66,7 @@ namespace TarkinItemExporter
 
             meshReimporter.ReimportMeshAssetsAndReplace(uniqueRootNodes);
 
-            while (!meshReimporter.Done)
+            while (meshReimporter.Working)
             {
                 yield return null;
             }

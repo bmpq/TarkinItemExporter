@@ -13,9 +13,9 @@ namespace TarkinItemExporter
 {
     public class MeshReimporter
     {
-        public bool Done;
-        public bool Success;
-        public string ErrorMessage;
+        public bool Working { get; private set; } = false;
+        public bool Success { get; private set; } = false;
+        public string ErrorMessage = "Not run yet";
 
         static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
 
@@ -24,13 +24,13 @@ namespace TarkinItemExporter
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
         public void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
         {
-            Done = false;
+            Working = true;
             Success = false;
             ErrorMessage = null;
 
             if (uniqueRootNodes == null || uniqueRootNodes.Count == 0)
             {
-                Done = true;
+                Working = false;
                 Success = false;
                 ErrorMessage = "No root nodes provided.";
                 return;
@@ -74,7 +74,7 @@ namespace TarkinItemExporter
             catch (Exception ex)
             {
                 ErrorMessage = $"Error preparing asset paths: {ex.Message}";
-                Done = true;
+                Working = false;
                 Success = false;
                 Plugin.Log.LogError(ex);
                 return;
@@ -91,7 +91,7 @@ namespace TarkinItemExporter
                 {
                     AsyncWorker.RunInMainTread(() => {
                         ErrorMessage = "Failed to load assets with AssetStudio.";
-                        Done = true;
+                        Working = false;
                         Success = false;
                     });
                 }
@@ -100,7 +100,7 @@ namespace TarkinItemExporter
                 {
                     AsyncWorker.RunInMainTread(() => {
                         ErrorMessage = $"Error in AssetStudio task: {task.Exception.InnerException?.Message ?? task.Exception.Message}";
-                        Done = true;
+                        Working = false;
                         Success = false;
                         Plugin.Log.LogError(task.Exception);
                     });
@@ -162,7 +162,7 @@ namespace TarkinItemExporter
             }
             finally
             {
-                Done = true;
+                Working = false;
             }
         }
     }
