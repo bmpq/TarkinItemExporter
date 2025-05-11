@@ -55,6 +55,73 @@ namespace TarkinItemExporter
             return convertedTexture;
         }
 
+        public static Texture2D CombineR(Texture texR, Texture texG, Texture texB, Texture texA)
+        {
+            Material mat = new Material(BundleShaders.Find("Hidden/CombineR"));
+            mat.SetTexture("_RTex", texR);
+            mat.SetTexture("_GTex", texG);
+            mat.SetTexture("_BTex", texB);
+            mat.SetTexture("_ATex", texA);
+
+            int maxWidth = Mathf.Max(texR.width, texG.width, texB.width, texA.width);
+            int maxHeight = Mathf.Max(texR.height, texG.height, texB.height, texA.height);
+
+            bool sRGBWrite = GL.sRGBWrite;
+            GL.sRGBWrite = false;
+            RenderTexture temporary = RenderTexture.GetTemporary(maxWidth, maxHeight, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(Texture2D.blackTexture, temporary, mat);
+
+            Texture2D convertedTexture = temporary.ToTexture2D();
+
+            RenderTexture.ReleaseTemporary(temporary);
+            GL.sRGBWrite = sRGBWrite;
+
+            return convertedTexture;
+        }
+
+        public static Texture2D Invert(Texture tex, bool invertAlpha = true)
+        {
+            Material mat = new Material(BundleShaders.Find("Hidden/Invert"));
+            mat.SetTexture("_MainTex", tex);
+
+            mat.SetKeyword("INVERT_ALPHA", invertAlpha);
+
+            bool sRGBWrite = GL.sRGBWrite;
+            GL.sRGBWrite = false;
+            RenderTexture temporary = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(tex, temporary, mat);
+
+            Texture2D convertedTexture = temporary.ToTexture2D();
+
+            RenderTexture.ReleaseTemporary(temporary);
+            GL.sRGBWrite = sRGBWrite;
+
+            return convertedTexture;
+        }
+
+        public static Texture2D ChannelToGrayscale(Texture tex, int channel)
+        {
+            Material mat = new Material(BundleShaders.Find("Hidden/ChannelToGrayscale"));
+
+            mat.SetTexture("_MainTex", tex);
+            mat.SetInt("_ChannelSelect", channel);
+
+            bool sRGBWrite = GL.sRGBWrite;
+            GL.sRGBWrite = false;
+            RenderTexture temporary = RenderTexture.GetTemporary(tex.width, tex.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(tex, temporary, mat);
+
+            Texture2D convertedTexture = temporary.ToTexture2D();
+
+            RenderTexture.ReleaseTemporary(temporary);
+            GL.sRGBWrite = sRGBWrite;
+
+            return convertedTexture;
+        }
+
         static Texture2D ToTexture2D(this RenderTexture rTex)
         {
             Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGBA32, false);

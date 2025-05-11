@@ -68,7 +68,6 @@ namespace TarkinItemExporter
             }
             else
             {
-                Plugin.Log.LogWarning($"Shader '{name}' not found in BundleShaders.");
                 return null;
             }
         }
