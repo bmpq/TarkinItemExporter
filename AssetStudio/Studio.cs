@@ -1,13 +1,17 @@
 using AssetStudio;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using TarkinItemExporter;
 
 public class Studio
 {
     static Dictionary<string, List<AssetItem>> fileCache = new Dictionary<string, List<AssetItem>>();
+    static BundleDependencyMap bundleDependencyMap;
 
     public static bool LoadAssets(HashSet<string> possibleFilePaths, out List<AssetItem> result)
     {
@@ -59,11 +63,6 @@ public class Studio
         return true;
     }
 
-    // requestPath (ItemTemplate.Prefab.path) can be `handguard_ak_izhmash_ak74m_std_plastic.bundle`
-    // which ignores additional bundle files, like:
-    // `handguard_ak_izhmash_ak74m_std_plastic_lod0_textures.bundle`
-    // `handguard_ak_izhmash_ak74m_std_plastic_mesh`
-    // this method simply searches for all files that contain the original bundle's name
     static HashSet<string> GetPathsBundleDependencies(string requestPath)
     {
         string directory = Path.GetDirectoryName(requestPath);
@@ -74,39 +73,50 @@ public class Studio
             return new HashSet<string>();
         }
 
-        // if the requested bundle is a variant like:
-        // `receiver_extension_red`
-        // the mesh is in the other bundle
-        // `receiver_extension`
-        // the proper way to do this is to check bundle dependedncies, but I got no easy way to do that
-        string[] parts = fileNameWithoutExtension.Split('_');
-        string fileNameWithoutExtensionShortened = string.Join("_", parts.Take(Math.Max(0, parts.Length - 4)));;
+        HashSet<string> result = new HashSet<string>();
 
-        HashSet<string> matchingFiles = new HashSet<string>();
+        string streamingAssetsPath = Path.Combine(UnityEngine.Application.streamingAssetsPath, "Windows");
 
-        try
+        if (bundleDependencyMap == null)
+            bundleDependencyMap = new BundleDependencyMap(Path.Combine(streamingAssetsPath, "Windows.json"));
+
+        // turning absolute path back to relative (to streamingassets dir) path
+        string relativePath = requestPath.Substring(streamingAssetsPath.Length);
+        if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString()) || relativePath.StartsWith(Path.AltDirectorySeparatorChar.ToString()))
+            relativePath = relativePath.Substring(1);
+
+        List<string> dependeciesRelativePaths = bundleDependencyMap.GetDependencies(relativePath);
+
+        var exactSkip = new HashSet<string>()
         {
-            foreach (string filePath in Directory.GetFiles(directory))
-            {
-                if (Path.GetFileNameWithoutExtension(filePath).StartsWith(fileNameWithoutExtensionShortened))
-                {
-                    matchingFiles.Add(filePath);
-                }
-            }
+            "shaders",
+            "cubemaps"
+        };
 
-            // additional unrelated bundle
-            string clientAssetsPath = Path.Combine(directory, "client_assets.bundle");
-            if (File.Exists(clientAssetsPath))
-            {
-                matchingFiles.Add(clientAssetsPath);
-            }
-        }
-        catch (Exception ex)
+        var partialSkip = new List<string>
         {
-            Plugin.Log.LogError(ex);
+            "content/audio",
+            "animations/",
+            "textures/",
+            "weapon_root_anim_fix",
+            "additional_hands",
+            "assets/systems",
+            "muzzlejets_templates",
+            "physicsmaterials"
+        };
+
+        foreach (string depPath in dependeciesRelativePaths)
+        {
+            if (exactSkip.Contains(depPath))
+                continue;
+
+            if (partialSkip.Any(substring => depPath.Contains(substring)))
+                continue;
+
+            result.Add(Path.Combine(streamingAssetsPath, depPath));
         }
 
-        return matchingFiles;
+        return result;
     }
 
     // this method is taken from AssetStudioCLI.Studio, stripped CLI filter options and skipping tree building
