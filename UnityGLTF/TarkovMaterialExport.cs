@@ -236,6 +236,22 @@ namespace UnityGLTF.Plugins
 
                 return true;
             }
+            else if (material.shader.name.Contains("CW FX/Collimator"))
+            {
+                var pbr = new PbrMetallicRoughness() { MetallicFactor = 0, RoughnessFactor = 0 };
+
+                KHR_materials_transmission transmission = new KHR_materials_transmission();
+                transmission.transmissionFactor = 1f;
+
+                exporter.DeclareExtensionUsage(KHR_materials_transmission_Factory.EXTENSION_NAME, true);
+                if (materialNode.Extensions == null)
+                    materialNode.Extensions = new Dictionary<string, IExtension>();
+                materialNode.Extensions[KHR_materials_transmission_Factory.EXTENSION_NAME] = transmission;
+
+                materialNode.PbrMetallicRoughness = pbr;
+
+                return true;
+            }
 
             return false;
         }
