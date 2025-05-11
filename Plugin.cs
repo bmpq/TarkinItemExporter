@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using tarkin;
 
-[BepInPlugin("com.tarkin.itemexporter", "TarkinItemExporter", "1.0.2")]
+[BepInPlugin("com.tarkin.itemexporter", "TarkinItemExporter", "1.1.0")]
 internal class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Log;
