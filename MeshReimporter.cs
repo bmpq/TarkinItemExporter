@@ -69,6 +69,10 @@ namespace TarkinItemExporter
                             pathsToLoad.Add(potentialModPath);
                         }
                     }
+
+                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "user", "cache", "bundles", resourcePath);
+                    if (File.Exists(fikaClientCachePath))
+                        pathsToLoad.Add(fikaClientCachePath);
                 }
             }
             catch (Exception ex)
