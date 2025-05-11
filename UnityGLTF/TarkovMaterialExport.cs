@@ -252,6 +252,14 @@ namespace UnityGLTF.Plugins
 
                 return true;
             }
+            else if (material.shader.name.Contains("Custom/OpticGlass"))
+            {
+                var pbr = new PbrMetallicRoughness() { MetallicFactor = 1f, RoughnessFactor = 0.05f };
+                pbr.BaseColorFactor = Color.black.ToNumericsColorRaw();
+                materialNode.PbrMetallicRoughness = pbr;
+
+                return true;
+            }
 
             return false;
         }
