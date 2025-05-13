@@ -134,12 +134,17 @@
       <HintPath>$(SPTPath)\EscapeFromTarkov_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Shaders\" />
-  </ItemGroup>
 
   <Target Name="CopyDllAfterBuild" AfterTargets="Build">
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(SPTPath)\BepInEx\plugins\tarkin\ItemExporter" />
+  </Target>
+  
+  <Target Name="CopyBundleDir" AfterTargets="Build">
+
+    <ItemGroup>
+      <BundleFiles Include="Resources\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(BundleFiles)" DestinationFolder="T:\extract\UNITYPROJECT_EFT35392\Assets\ItemExporter\Resources\%(RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

@@ -1,9 +1,9 @@
-Shader "Hidden/SetAlpha"
+Shader "Hidden/FillAlpha"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-        _Alpha ("Alpha", Range(0,1)) = 0.5
+        _Alpha ("Alpha", Range(0,1)) = 1.0
 	}
 	SubShader
 	{

@@ -64,7 +64,7 @@ Shader "Hidden/ChannelToGrayscale"
                 }
                 
                 // Output: selected channel duplicated into R, G, B. Alpha is 1.0.
-                return fixed4(selectedChannelValue, selectedChannelValue, selectedChannelValue, 1.0);
+                return fixed4(selectedChannelValue, selectedChannelValue, selectedChannelValue, selectedChannelValue);
             }
             ENDCG
         }
