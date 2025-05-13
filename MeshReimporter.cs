@@ -60,13 +60,16 @@ namespace TarkinItemExporter
 
                     DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
                     string serverModsDirPath = Path.Combine(gameRootDir.FullName, "user", "mods");
-                    foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
+                    if (Directory.Exists(serverModsDirPath))
                     {
-                        string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
-
-                        if (File.Exists(potentialModPath))
+                        foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
                         {
-                            pathsToLoad.Add(potentialModPath);
+                            string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
+
+                            if (File.Exists(potentialModPath))
+                            {
+                                pathsToLoad.Add(potentialModPath);
+                            }
                         }
                     }
 
