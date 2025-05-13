@@ -35,7 +35,6 @@ internal class Plugin : BaseUnityPlugin
         new PatchGetUniqueName().Enable();
         new PatchMSFT_LOD().Enable();
         new PatchResourcesLoad().Enable();
-        new PatchGetExportSettingsForSlot().Enable();
         BundleShaders.Add(AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>());
 
         new PatchItemSpecificationsPanel().Enable();
