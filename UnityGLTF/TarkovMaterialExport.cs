@@ -67,10 +67,27 @@ namespace UnityGLTF.Plugins
                 pbr.MetallicRoughnessTexture = exporter.ExportTextureInfo(texMetRough, TextureMapType.Linear);
                 ExportTextureTransform(pbr.MetallicRoughnessTexture, material, TransparentCutoff ? "_MainTex" : "_SpecMap");
 
+                Texture2D texAlbedo = TextureConverter.FillAlpha(texAlbedoSpec, 1f);
+
                 if (TransparentCutoff)
                     materialNode.AlphaMode = AlphaMode.MASK;
 
-                pbr.BaseColorTexture = exporter.ExportTextureInfo(texAlbedoSpec, TextureMapType.BaseColor);
+                if (material.HasFloat("_HasTint") && material.GetFloat("_HasTint") > 0.5f)
+                {
+                    Color colorTint = material.GetColor("_BaseTintColor");
+                    Texture2D texDiffuseWithTint = TextureConverter.BlendOverlay(
+                        texAlbedo,
+                        TextureConverter.CreateSolidColorTexture(4, 4, colorTint),
+                        material.GetTexture("_TintMask") as Texture2D, 1f);
+
+                    texDiffuseWithTint.name = texAlbedoSpec.name + "_" + ColorUtility.ToHtmlStringRGB(colorTint);
+
+                    pbr.BaseColorTexture = exporter.ExportTextureInfo(texDiffuseWithTint, TextureMapType.BaseColor);
+                }
+                else
+                {
+                    pbr.BaseColorTexture = exporter.ExportTextureInfo(texAlbedo, TextureMapType.BaseColor);
+                }
                 ExportTextureTransform(pbr.BaseColorTexture, material, TransparentCutoff ? "_SpecMap" : "_MainTex");
 
                 GLTF.Math.Color specularColor = KHR_materials_specular.COLOR_DEFAULT;

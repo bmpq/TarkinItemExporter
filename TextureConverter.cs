@@ -23,38 +23,6 @@ namespace TarkinItemExporter
             return convertedTexture;
         }
 
-        static Dictionary<Texture, Texture2D> cache = new Dictionary<Texture, Texture2D>();
-
-        public static Texture2D ConvertAlbedoSpecGlosToSpecGloss(Texture inputTextureAlbedoSpec, Texture inputTextureGloss)
-        {
-            if (cache.ContainsKey(inputTextureAlbedoSpec))
-            {
-                Texture2D cached = cache[inputTextureAlbedoSpec];
-                Plugin.Log.LogInfo($"Using cached converted texture {cached.name}");
-                return cached;
-            }
-
-            Material mat = new Material(BundleShaders.Find("Hidden/AlbedoSpecGlosToSpecGloss"));
-            mat.SetTexture("_AlbedoSpecTex", inputTextureAlbedoSpec);
-            mat.SetTexture("_GlossinessTex", inputTextureGloss);
-
-            bool sRGBWrite = GL.sRGBWrite;
-            GL.sRGBWrite = false;
-            RenderTexture temporary = RenderTexture.GetTemporary(inputTextureAlbedoSpec.width, inputTextureAlbedoSpec.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-
-            Graphics.Blit(inputTextureAlbedoSpec, temporary, mat);
-
-            Texture2D convertedTexture = temporary.ToTexture2D();
-            convertedTexture.name += inputTextureAlbedoSpec.name + "_SPECGLOS";
-
-            RenderTexture.ReleaseTemporary(temporary);
-            GL.sRGBWrite = sRGBWrite;
-
-            cache[inputTextureAlbedoSpec] = convertedTexture;
-
-            return convertedTexture;
-        }
-
         public static Texture2D CombineR(Texture texR, Texture texG, Texture texB, Texture texA)
         {
             Material mat = new Material(BundleShaders.Find("Hidden/CombineR"));
@@ -122,6 +90,35 @@ namespace TarkinItemExporter
             return convertedTexture;
         }
 
+        public static Texture2D BlendOverlay(Texture2D texBase, Texture2D texTop, Texture2D texMask, float factor)
+        {
+            Material mat = new Material(BundleShaders.Find("Hidden/BlendOverlay"));
+            mat.SetTexture("_MainTex", texBase);
+            mat.SetTexture("_TopTex", texTop);
+            mat.SetTexture("_MaskTex", texMask);
+            mat.SetFloat("_Factor", factor);
+
+            bool sRGBWrite = GL.sRGBWrite;
+            GL.sRGBWrite = false;
+            RenderTexture temporary = RenderTexture.GetTemporary(texBase.width, texBase.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(texBase, temporary, mat);
+
+            Texture2D convertedTexture = temporary.ToTexture2D();
+
+            RenderTexture.ReleaseTemporary(temporary);
+            GL.sRGBWrite = sRGBWrite;
+
+            return convertedTexture;
+        }
+
+        public static Texture2D FillAlpha(Texture tex, float alpha = 1.0f)
+        {
+            Material mat = new Material(BundleShaders.Find("Hidden/FillAlpha"));
+
+            return Convert(tex, mat);
+        }
+
         static Texture2D ToTexture2D(this RenderTexture rTex)
         {
             Texture2D tex = new Texture2D(rTex.width, rTex.height, TextureFormat.RGBA32, false);
@@ -132,12 +129,11 @@ namespace TarkinItemExporter
             return tex;
         }
 
-        public static Texture2D CreateSolidColorTexture(int width, int height, float r, float g, float b, float a)
+        public static Texture2D CreateSolidColorTexture(int width, int height, Color color)
         {
             Texture2D texture = new Texture2D(width, height);
 
             Color[] pixels = new Color[width * height];
-            Color color = new Color(r, g, b, a);
 
             for (int i = 0; i < pixels.Length; i++)
             {
@@ -148,11 +144,6 @@ namespace TarkinItemExporter
             texture.Apply();
 
             return texture;
-        }
-
-        public static Texture2D CreateSolidColorTexture(int width, int height, float c, float a)
-        {
-            return CreateSolidColorTexture(width, height, c, c, c, a);
         }
     }
 }
