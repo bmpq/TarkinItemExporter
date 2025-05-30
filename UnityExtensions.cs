@@ -5,16 +5,6 @@ namespace TarkinItemExporter
 {
     internal static class UnityExtensions
     {
-        public static Transform GetRoot(this Transform tr)
-        {
-            while (tr.parent != null)
-            {
-                tr = tr.parent;
-            }
-
-            return tr;
-        }
-
         public static void ZeroTransformAndItsParents(this Transform tr)
         {
             do

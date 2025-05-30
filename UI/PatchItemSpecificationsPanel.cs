@@ -31,7 +31,7 @@ namespace TarkinItemExporter.UI
                 delegate
                 {
                     Exporter.CallbackFinished = () => __instance.GetComponent<InfoWindow>().Close();
-                    Export(___weaponPreview_0.WeaponPreviewCamera.transform.GetRoot(), itemContext.Item);
+                    Export(___weaponPreview_0.WeaponPreviewCamera.transform.root, itemContext.Item);
                 }, 
                 null, false, false);
 
