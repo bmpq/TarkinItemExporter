@@ -185,7 +185,6 @@ namespace TarkinItemExporter
             GLTFSettings gLTFSettings = GLTFSettings.GetOrCreateSettings();
             gLTFSettings.ExportDisabledGameObjects = false;
             gLTFSettings.UseTextureFileTypeHeuristic = false;
-            gLTFSettings.ConvertTextures = true;
             gLTFSettings.ExportPlugins = new List<GLTFExportPlugin>
             {
                 ScriptableObject.CreateInstance(typeof(TarkovMaterialExport)) as TarkovMaterialExport,
