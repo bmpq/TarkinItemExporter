@@ -73,19 +73,26 @@ public class Studio
             return new HashSet<string>();
         }
 
-        HashSet<string> result = new HashSet<string>();
+        // Standardize paths for reliable comparison
+        string streamingAssetsPath = Path.GetFullPath(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Windows"));
+        string fullRequestPath = Path.GetFullPath(requestPath);
 
-        string streamingAssetsPath = Path.Combine(UnityEngine.Application.streamingAssetsPath, "Windows");
+        if (!fullRequestPath.StartsWith(streamingAssetsPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return new HashSet<string>();
+        }
 
         if (bundleDependencyMap == null)
             bundleDependencyMap = new BundleDependencyMap(Path.Combine(streamingAssetsPath, "Windows.json"));
 
         // turning absolute path back to relative (to streamingassets dir) path
-        string relativePath = requestPath.Substring(streamingAssetsPath.Length);
+        string relativePath = fullRequestPath.Substring(streamingAssetsPath.Length);
         if (relativePath.StartsWith(Path.DirectorySeparatorChar.ToString()) || relativePath.StartsWith(Path.AltDirectorySeparatorChar.ToString()))
             relativePath = relativePath.Substring(1);
 
         List<string> dependeciesRelativePaths = bundleDependencyMap.GetDependencies(relativePath);
+
+        HashSet<string> result = new HashSet<string>();
 
         var exactSkip = new HashSet<string>()
         {
