@@ -77,7 +77,7 @@ namespace TarkinItemExporter
                 ProgressScreen.Instance.HideGameObject();
                 Plugin.Log.LogInfo("Export failed: Error loading bundles.");
                 NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed. Something went wrong loading bundle files.",
+                    $"Export failed. Error loading bundles: {meshReimporter.ErrorMessage}",
                     EFT.Communications.ENotificationDurationType.Long);
 
                 yield break;
@@ -94,7 +94,7 @@ namespace TarkinItemExporter
                 ProgressScreen.Instance.HideGameObject();
                 Plugin.Log.LogInfo($"Export failed: {ex}");
                 NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed. Something went wrong while handling scene objects.",
+                    $"Export failed: {ex}",
                     EFT.Communications.ENotificationDurationType.Long);
             }
 
@@ -111,7 +111,7 @@ namespace TarkinItemExporter
             {
                 Plugin.Log.LogInfo($"Export failed: {ex}");
                 NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed. UnityGLTF failure. Or writing to disk failure.",
+                    $"Export failed. UnityGLTF failure: {ex}",
                     EFT.Communications.ENotificationDurationType.Long);
             }
 
