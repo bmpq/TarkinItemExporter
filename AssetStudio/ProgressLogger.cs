@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AssetStudio
 {
-    internal class ProgressLogger : IProgress<int>
+    public class ProgressLogger : IProgress<int>
     {
         public static event Action<int> OnProgress;
 

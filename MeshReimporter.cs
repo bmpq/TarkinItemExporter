@@ -24,6 +24,12 @@ namespace TarkinItemExporter
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
         public void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
         {
+            if (Working)
+            {
+                Plugin.Log.LogWarning("Mesh reimport is already in progress. Ignoring new request.");
+                return;
+            }
+
             Working = true;
             Success = false;
             ErrorMessage = null;
@@ -90,7 +96,9 @@ namespace TarkinItemExporter
 
             Task.Run(() =>
             {
-                if (Studio.LoadAssets(pathsToLoad, out List<AssetItem> assets))
+                Studio studio = new Studio();
+
+                if (studio.LoadAssets(pathsToLoad, out List <AssetItem> assets))
                 {
                     AsyncWorker.RunInMainTread(() => ReplaceMesh(uniqueRootNodes, assets));
                 }
@@ -127,14 +135,6 @@ namespace TarkinItemExporter
                     if (meshFilter.sharedMesh.isReadable)
                         continue;
 
-                    int origMeshHash = meshFilter.sharedMesh.GetHashCode();
-                    if (cacheConvertedMesh.ContainsKey(origMeshHash))
-                    {
-                        meshFilter.sharedMesh = cacheConvertedMesh[origMeshHash];
-                        Plugin.Log.LogInfo($"{meshFilter.name}: found mesh already converted in cache");
-                        continue;
-                    }
-
                     Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
 
                     // matching by vertex count is more reliable than just by name
@@ -153,8 +153,6 @@ namespace TarkinItemExporter
                     AssetStudio.Mesh asMesh = assetItem.Asset as AssetStudio.Mesh;
 
                     meshFilter.sharedMesh = asMesh.ConvertToUnityMesh();
-
-                    cacheConvertedMesh[origMeshHash] = meshFilter.sharedMesh;
 
                     Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
                 }

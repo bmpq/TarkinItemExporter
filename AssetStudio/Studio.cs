@@ -10,10 +10,9 @@ using TarkinItemExporter;
 
 public class Studio
 {
-    static Dictionary<string, List<AssetItem>> fileCache = new Dictionary<string, List<AssetItem>>();
-    static BundleDependencyMap bundleDependencyMap;
+    BundleDependencyMap bundleDependencyMap;
 
-    public static bool LoadAssets(HashSet<string> possibleFilePaths, out List<AssetItem> result)
+    public bool LoadAssets(HashSet<string> possibleFilePaths, out List<AssetItem> result)
     {
         result = new List<AssetItem>();
 
@@ -22,48 +21,34 @@ public class Studio
             possibleFilePaths.UnionWith(GetPathsBundleDependencies(filePath));
         }
 
-        List<string> fileAlreadyLoaded = new List<string>();
-        foreach (var path in possibleFilePaths)
-        {
-            string normPath = Path.GetFullPath(path);
-            if (fileCache.ContainsKey(normPath))
-            {
-                result.AddRange(fileCache[normPath]);
-                fileAlreadyLoaded.Add(path);
-            }
-        }
-        possibleFilePaths.RemoveWhere(fileAlreadyLoaded.Contains);
-
         if (possibleFilePaths.Count == 0)
             return true;
 
         AssetsManager assetsManager = new AssetsManager();
+        bool failed = false;
 
         try
         {
+            assetsManager.SetAssetFilter(ClassIDType.Mesh);
             assetsManager.LoadFilesAndFolders(possibleFilePaths.ToArray());
             List<AssetItem> justLoaded = ParseAssets(assetsManager);
-
-            foreach (AssetItem asset in justLoaded)
-            {
-                string normPath = Path.GetFullPath(asset.SourceFile.originalPath);
-                if (!fileCache.ContainsKey(normPath))
-                    fileCache[normPath] = new List<AssetItem>();
-                fileCache[normPath].Add(asset);
-            }
 
             result.AddRange(justLoaded);
         }
         catch (Exception ex)
         {
             Plugin.Log.LogError(ex);
-            return false;
+            failed = true;
+        }
+        finally
+        {
+            assetsManager.Clear();
         }
 
-        return true;
+        return !failed;
     }
 
-    static HashSet<string> GetPathsBundleDependencies(string requestPath)
+    HashSet<string> GetPathsBundleDependencies(string requestPath)
     {
         string directory = Path.GetDirectoryName(requestPath);
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(requestPath);
@@ -127,7 +112,7 @@ public class Studio
     }
 
     // this method is taken from AssetStudioCLI.Studio, stripped CLI filter options and skipping tree building
-    private static List<AssetItem> ParseAssets(AssetsManager assetsManager)
+    private List<AssetItem> ParseAssets(AssetsManager assetsManager)
     {
         Logger.Info("Parse assets...");
 
