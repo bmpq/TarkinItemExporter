@@ -3,9 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>TarkinItemExporter</AssemblyName>
-    <Version>1.1.1</Version>
+    <Version>1.2.0</Version>
     <LangVersion>latest</LangVersion>
     <Configurations>RUNTIME</Configurations>
+    <Timestamp>$([System.DateTime]::Now.ToString('yyyyMMdd_HHmmss'))</Timestamp>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,9 +16,11 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <SPTPath>E:\Games\SPT_3.11</SPTPath>
     <ModExportPath>$(SPTPath)\BepInEx\plugins\tarkin\ItemExporter</ModExportPath>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <ReleasePackageFileName>$(AssemblyName)-$(Version)</ReleasePackageFileName>
+    <ReleasePath>Releases\$(ReleasePackageFileName)\BepInEx\plugins\tarkin\ItemExporter</ReleasePath>
   </PropertyGroup>
   
   <ItemGroup>
@@ -100,6 +103,19 @@
       <DeployFiles Include="$(OutputPath)GLTF_EFTMaterialExportPlugin.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(ModExportPath)" SkipUnchangedFiles="true" />
+
+    
+    <Copy SourceFiles="@(DeployFiles)" DestinationFolder="$(ReleasePath)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)AssetBundleLoader.dll" DestinationFolder="$(ReleasePath)\..\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ModExportPath)\..\bundles\unitygltf" DestinationFolder="$(ReleasePath)\..\bundles" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(ModExportPath)\..\bundles\unitygltf.manifest" DestinationFolder="$(ReleasePath)\..\bundles" SkipUnchangedFiles="true" />
+  </Target>
+  
+  <Target Name="Zip" AfterTargets="Build">
+    <ItemGroup>
+      <ZipFiles Include="Releases\$(ReleasePackageFileName)\BepInEx" />
+    </ItemGroup>
+    <Exec Command="PowerShell -command Compress-Archive @(ZipFiles, ',') Releases\$(ReleasePackageFileName)_$(Timestamp).zip" />
   </Target>
   
   <Target Name="CopyBundleDir" AfterTargets="Build">
