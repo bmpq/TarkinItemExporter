@@ -22,7 +22,7 @@ namespace TarkinItemExporter.UI
         [PatchPostfix]
         private static void PatchPostfix(ItemSpecificationPanel __instance, ItemContextAbstractClass itemContext, InteractionButtonsContainer ____interactionButtonsContainer, WeaponPreview ___weaponPreview_0)
         {
-            Sprite sprite = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAsset<Sprite>("saveicon");
+            Sprite sprite = CacheResourcesPopAbstractClass.Pop<Sprite>("characteristics/icons/builds/save_build_icon");
 
             SimpleContextMenuButton _buttonTemplate = (SimpleContextMenuButton)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate").GetValue(____interactionButtonsContainer);
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
