@@ -1,3 +1,4 @@
+using TarkinItemExporter;
 using UnityEngine;
 
 namespace AssetStudio

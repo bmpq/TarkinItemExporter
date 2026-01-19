@@ -1,52 +1,60 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using EFT;
 using UnityEngine;
-using TarkinItemExporter;
 using TarkinItemExporter.UI;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using tarkin;
 
-[BepInPlugin("com.tarkin.itemexporter", MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-internal class Plugin : BaseUnityPlugin
+namespace TarkinItemExporter
 {
-    internal static new ManualLogSource Log;
-
-    internal static ConfigEntry<bool> OverwriteTextureFiles;
-    internal static ConfigEntry<bool> AllowLowTextures;
-    internal static ConfigEntry<string> OutputDir;
-
-    internal const string TEXTTOOLTIP_LOWTEX = "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.";
-    internal const string TEXTBUTTON_EXPORT = "Export as glTF";
-
-    internal static bool InputBlocked;
-
-    private void Awake()
+    [BepInPlugin("com.tarkin.itemexporter", MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    internal class Plugin : BaseUnityPlugin
     {
-        Log = base.Logger;
-        AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
-        AssetStudio.Progress.Default = new AssetStudio.ProgressLogger();
+        internal static ManualLogSource Log;
 
-        InitConfiguration();
+        internal static ConfigEntry<string> OutputDir;
 
-        new PatchGetUniqueName().Enable();
-        new PatchMSFT_LOD().Enable();
+        internal static ConfigEntry<bool> OverwriteTextureFiles;
+        internal static ConfigEntry<bool> AllowLowTextures;
 
-        Shader[] shaders = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>();
-        UnityGLTF.TextureConverter.InjectBundleShaders(shaders);
-        UnityGLTF.BundleResources.InjectBundleShaders(shaders);
+        internal static ConfigEntry<bool> TextureFormatWebp;
+        internal static ConfigEntry<int> TextureFormatWebpQuality;
 
-        new PatchItemSpecificationsPanel().Enable();
-        new PatchUIInput().Enable();
-    }
+        internal const string TEXTTOOLTIP_LOWTEX = "Export Disabled: Your current graphics setting is set to low texture quality, it will result in poor quality textures in the export, as textures are taken from runtime material. To proceed with exporting, either increase your graphics settings for better texture quality or allow low texture exports in the plugin settings.";
+        internal const string TEXTBUTTON_EXPORT = "Export as glTF";
 
-    private void InitConfiguration()
-    {
-        OverwriteTextureFiles = Config.Bind("Export", "OverwriteTextureFiles", true, "");
-        AllowLowTextures = Config.Bind("Export", "AllowLowTextures", false, "Textures are taken from runtime material, so the exported textures depend on the game graphics setting");
-        OutputDir = Config.Bind("Export", "OutputDir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Escape from Tarkov", "ExportedGLTF"), "");
+        internal static bool InputBlocked;
+
+        private void Start()
+        {
+            Log = base.Logger;
+            AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
+            AssetStudio.Progress.Default = new AssetStudio.ProgressLogger();
+
+            InitConfiguration();
+
+            new PatchGetUniqueName().Enable();
+            new PatchMSFT_LOD().Enable();
+
+            Shader[] shaders = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>();
+            UnityGLTF.TextureConverter.InjectBundleShaders(shaders);
+            UnityGLTF.BundleResources.InjectBundleShaders(shaders);
+
+            new PatchItemSpecificationsPanel().Enable();
+            new PatchUIInput().Enable();
+        }
+
+        private void InitConfiguration()
+        {
+            OutputDir = Config.Bind("Export", "OutputDir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Escape from Tarkov", "ExportedGLTF"), "");
+
+            OverwriteTextureFiles = Config.Bind("Textures", "OverwriteTextureFiles", true, "");
+            AllowLowTextures = Config.Bind("Textures", "AllowLowTextures", false, "Textures are taken from runtime material, so the exported textures depend on the game graphics setting");
+
+            TextureFormatWebp = Config.Bind("Textures", "TextureFormatWebp", false, "WebP makes for smaller texture file size");
+            TextureFormatWebpQuality = Config.Bind("Textures", "WebpQuality", 90, "");
+        }
     }
 }
