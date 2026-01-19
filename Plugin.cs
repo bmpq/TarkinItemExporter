@@ -37,7 +37,7 @@ internal class Plugin : BaseUnityPlugin
 
         Shader[] shaders = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>();
         UnityGLTF.TextureConverter.InjectBundleShaders(shaders);
-        UnityGLTF.GLTFSceneExporter.InjectBundleShaders(shaders);
+        UnityGLTF.BundleResources.InjectBundleShaders(shaders);
 
         new PatchItemSpecificationsPanel().Enable();
         new PatchUIInput().Enable();
