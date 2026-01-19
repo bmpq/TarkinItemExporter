@@ -10,6 +10,8 @@ using UnityGLTF;
 using TarkinItemExporter.UI;
 using UnityGLTF.Plugins;
 
+using IconsHash = GClass928;
+
 namespace TarkinItemExporter
 {
     public static class Exporter
@@ -42,7 +44,7 @@ namespace TarkinItemExporter
 
         public static string GenerateHashedName(EFT.InventoryLogic.Item item)
         {
-            int persistentHash = GClass906.GetItemHash(item); // same hash used by icons
+            int persistentHash = IconsHash.GetItemHash(item);
             string filename = item.Template._name + "_" + persistentHash;
             return filename;
         }
