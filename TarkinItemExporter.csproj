@@ -99,7 +99,7 @@
     <Copy SourceFiles="$(OutputPath)AssetBundleLoader.dll" DestinationFolder="$(SPTPath)\$(ModExportRelPath)\..\" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(OutputPath)AssetBundleLoader.dll" DestinationFolder="$(ReleasePath)\$(ModExportRelPath)\..\" SkipUnchangedFiles="true" />
     
-    <Copy SourceFiles="$(SPTPath)\$(ModExportRelPath)\..\bundles\unitygltf" DestinationFolder="$(ReleasePath)\..\bundles" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(SPTPath)\$(ModExportRelPath)\..\bundles\unitygltf" DestinationFolder="$(ReleasePath)\$(ModExportRelPath)\..\bundles" SkipUnchangedFiles="true" />
   </Target>
   
   <Target Name="Zip" AfterTargets="Build">
