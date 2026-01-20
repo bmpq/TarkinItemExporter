@@ -70,7 +70,6 @@
       <DeployFiles Include="$(OutputPath)AssetStudio.dll" />
       <DeployFiles Include="$(OutputPath)K4os.Compression.LZ4.dll" />
       <DeployFiles Include="$(OutputPath)System.Buffers.dll" />
-      <DeployFiles Include="$(OutputPath)System.Memory.dll" />
       <DeployFiles Include="$(OutputPath)System.Numerics.Vectors.dll" />
       <DeployFiles Include="$(OutputPath)Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll" />
       <DeployFiles Include="$(OutputPath)ZstdSharp.dll" />
