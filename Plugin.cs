@@ -15,6 +15,7 @@ namespace TarkinItemExporter
         internal static ManualLogSource Log;
 
         internal static ConfigEntry<string> OutputDir;
+        internal static ConfigEntry<bool> OpenExplorerOnFinish;
 
         internal static ConfigEntry<bool> OverwriteTextureFiles;
         internal static ConfigEntry<bool> AllowLowTextures;
@@ -49,6 +50,7 @@ namespace TarkinItemExporter
         private void InitConfiguration()
         {
             OutputDir = Config.Bind("Export", "OutputDir", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Escape from Tarkov", "ExportedGLTF"), "");
+            OpenExplorerOnFinish = Config.Bind("Export", "OpenExplorerOnFinish", true, "Open output folder on finish export");
 
             OverwriteTextureFiles = Config.Bind("Textures", "OverwriteTextureFiles", true, "");
             AllowLowTextures = Config.Bind("Textures", "AllowLowTextures", false, "Textures are taken from runtime material, so the exported textures depend on the game graphics setting");

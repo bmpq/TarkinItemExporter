@@ -213,6 +213,11 @@ namespace TarkinItemExporter
                 NotificationManagerClass.DisplayMessageNotification(
                     $"Successful export to {Path.Combine(pathDir, filename)}", 
                     EFT.Communications.ENotificationDurationType.Long);
+
+                if (Plugin.OpenExplorerOnFinish.Value)
+                {
+                    WindowsExplorerHandler.OpenOrFlash(pathDir);
+                }
             }
             catch (Exception ex)
             {
