@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -17,7 +18,20 @@ namespace TarkinItemExporter
         public bool Success { get; private set; } = false;
         public string ErrorMessage = "Not run yet";
 
-        static Dictionary<int, Mesh> cacheConvertedMesh = new Dictionary<int, Mesh>();
+        public List<string> FullLog = new List<string>();
+        public string ConsolidatedLog
+        {
+            get
+            {
+                StringBuilder result = new StringBuilder();
+                result.AppendLine(ErrorMessage);
+                foreach (var logEntry in FullLog)
+                {
+                    result.AppendLine(logEntry);
+                }
+                return result.ToString();
+            }
+        }
 
         FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -45,13 +59,22 @@ namespace TarkinItemExporter
             List<AssetPoolObject> assetPoolObjects = uniqueRootNodes.SelectMany(rootNode => rootNode.GetComponentsInChildren<AssetPoolObject>()).ToList();
             HashSet<string> pathsToLoad = new HashSet<string>();
 
+            bool alreadyReadable = false;
+
             try
             {
                 foreach (var assetPoolObject in assetPoolObjects)
                 {
                     MeshFilter[] meshFilters = assetPoolObject.GetComponentsInChildren<MeshFilter>();
-                    if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null || meshFilter.sharedMesh.isReadable))
+
+                    if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null))
                         continue;
+
+                    if (meshFilters.All(meshFilter => meshFilter.mesh.isReadable))
+                    {
+                        alreadyReadable = true;
+                        continue;
+                    }
 
                     ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
                     if (resourceValue.ItemTemplate == null || resourceValue.ItemTemplate.Prefab == null)
@@ -62,26 +85,35 @@ namespace TarkinItemExporter
                     if (File.Exists(vanillaFullpath))
                     {
                         pathsToLoad.Add(vanillaFullpath);
+                        continue;
+                    }
+                    else
+                    {
+                        FullLog.Add($"No vanilla bundle exists at: {vanillaFullpath}");
                     }
 
                     DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
-                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "user", "mods");
-                    if (Directory.Exists(serverModsDirPath))
+                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "SPT", "user", "mods");
+                    foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
                     {
-                        foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
-                        {
-                            string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
+                        FullLog.Add($"Checking if item belongs to {modDir}");
+                        string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
 
-                            if (File.Exists(potentialModPath))
-                            {
-                                pathsToLoad.Add(potentialModPath);
-                            }
+                        if (File.Exists(potentialModPath))
+                        {
+                            pathsToLoad.Add(potentialModPath);
+                        }
+                        else
+                        {
+                            FullLog.Add($"No bundle exists at: {potentialModPath}");
                         }
                     }
 
-                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "user", "cache", "bundles", resourcePath);
+                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "SPT", "user", "cache", "bundles", resourcePath);
                     if (File.Exists(fikaClientCachePath))
                         pathsToLoad.Add(fikaClientCachePath);
+                    else
+                        FullLog.Add($"No bundle exists at: {pathsToLoad}");
                 }
             }
             catch (Exception ex)
@@ -89,7 +121,14 @@ namespace TarkinItemExporter
                 ErrorMessage = $"Error preparing asset paths: {ex.Message}";
                 Working = false;
                 Success = false;
-                Plugin.Log.LogError(ex);
+                return;
+            }
+
+            if (pathsToLoad.Count == 0 && !alreadyReadable)
+            {
+                ErrorMessage = "Error finding bundles of the item.";
+                Working = false;
+                Success = false;
                 return;
             }
 

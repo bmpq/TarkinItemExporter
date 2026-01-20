@@ -9,6 +9,8 @@ using System.Collections;
 using UnityGLTF;
 using TarkinItemExporter.UI;
 using UnityGLTF.Plugins;
+using Comfort.Common;
+using EFT.UI;
 
 using IconsHash = GClass928;
 
@@ -76,11 +78,13 @@ namespace TarkinItemExporter
 
             if (!meshReimporter.Success)
             {
+                Time.timeScale = origTimeScale;
+
                 ProgressScreen.Instance.HideGameObject();
-                Plugin.Log.LogInfo("Export failed: Error loading bundles.");
-                NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed. Error loading bundles: {meshReimporter.ErrorMessage}",
-                    EFT.Communications.ENotificationDurationType.Long);
+
+                Plugin.Log.LogError(meshReimporter.ConsolidatedLog);
+
+                Singleton<PreloaderUI>.Instance.ShowErrorScreen("Tarkin Item Exporter", meshReimporter.ConsolidatedLog);
 
                 yield break;
             }
@@ -97,7 +101,7 @@ namespace TarkinItemExporter
                 Plugin.Log.LogInfo($"Export failed: {ex}");
                 NotificationManagerClass.DisplayMessageNotification(
                     $"Export failed: {ex}",
-                    EFT.Communications.ENotificationDurationType.Long);
+                    EFT.Communications.ENotificationDurationType.Long, EFT.Communications.ENotificationIconType.Alert);
             }
 
             GameObject[] toExport = uniqueRootNodes.ToArray();
