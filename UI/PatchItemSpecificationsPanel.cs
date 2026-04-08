@@ -7,7 +7,6 @@ using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Collections.Generic;
 using System.Reflection;
-using tarkin;
 using UnityEngine;
 
 namespace TarkinItemExporter.UI

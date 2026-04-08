@@ -5,6 +5,8 @@
     <AssemblyName>TarkinItemExporter</AssemblyName>
     <Version>1.3.0</Version>
     <LangVersion>latest</LangVersion>
+    
+    <DefineConstants>$(DefineConstants);SPT_4_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +27,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="C:\repos\AssetBundleLoader\AssetBundleLoader.csproj" />
 
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.1.0" />
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.43" IncludeAssets="compile" />
@@ -45,8 +46,8 @@
     <ProjectReference Include="..\bmpq-UnityGLTF\Runtime\UnityGLTF.csproj" />
     <ProjectReference Include="..\GLTF_EFTMaterialExportPlugin\GLTF_EFTMaterialExportPlugin.csproj" />
 
-    <Reference Include="$(UnityBuildPath)\Managed\unity.webp.dll" />
-    <Reference Include="$(UnityBuildPath)\Managed\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll" />
+    <Reference Include="$(UnityProjectRuntimeBinaryPath)\unity.webp.dll" />
+    <Reference Include="$(UnityProjectRuntimeBinaryPath)\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -87,17 +88,13 @@
 
     
     <ItemGroup>
-      <DeployFilesNative Include="$(UnityBuildPath)\Plugins\x86_64\libwebp.dll" />
-      <DeployFilesNative Include="$(UnityBuildPath)\Plugins\x86_64\libsharpyuv.dll" />
-      <DeployFilesNative Include="$(UnityBuildPath)\Plugins\x86_64\libwebpdecoder.dll" />
-      <DeployFilesNative Include="$(UnityBuildPath)\Plugins\x86_64\libwebpdemux.dll" />
+      <DeployFilesNative Include="$(UnityProjectRuntimeBinaryPath)\..\Plugins\x86_64\libwebp.dll" />
+      <DeployFilesNative Include="$(UnityProjectRuntimeBinaryPath)\..\Plugins\x86_64\libsharpyuv.dll" />
+      <DeployFilesNative Include="$(UnityProjectRuntimeBinaryPath)\..\Plugins\x86_64\libwebpdecoder.dll" />
+      <DeployFilesNative Include="$(UnityProjectRuntimeBinaryPath)\..\Plugins\x86_64\libwebpdemux.dll" />
     </ItemGroup>
     <Copy SourceFiles="@(DeployFilesNative)" DestinationFolder="$(SPTPath)\$(NativeLibExportRelPath)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(DeployFilesNative)" DestinationFolder="$(ReleasePath)\$(NativeLibExportRelPath)" SkipUnchangedFiles="true" />
-    
-    
-    <Copy SourceFiles="$(OutputPath)AssetBundleLoader.dll" DestinationFolder="$(SPTPath)\$(ModExportRelPath)\..\" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(OutputPath)AssetBundleLoader.dll" DestinationFolder="$(ReleasePath)\$(ModExportRelPath)\..\" SkipUnchangedFiles="true" />
     
     <Copy SourceFiles="$(SPTPath)\$(ModExportRelPath)\..\bundles\unitygltf" DestinationFolder="$(ReleasePath)\$(ModExportRelPath)\..\bundles" SkipUnchangedFiles="true" />
   </Target>

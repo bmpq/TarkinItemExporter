@@ -28,6 +28,8 @@ namespace TarkinItemExporter
 
         internal static bool InputBlocked;
 
+        AssetBundleHandler assetBundleHandler;
+
         private void Start()
         {
             Log = base.Logger;
@@ -39,7 +41,9 @@ namespace TarkinItemExporter
             new PatchGetUniqueName().Enable();
             new PatchMSFT_LOD().Enable();
 
-            Shader[] shaders = AssetBundleLoader.LoadAssetBundle("unitygltf").LoadAllAssets<Shader>();
+            assetBundleHandler = new AssetBundleHandler(Path.Combine(BepInEx.Paths.PluginPath, "tarkin", "bundles"), Log);
+
+            Shader[] shaders = assetBundleHandler.LoadBundle("unitygltf").LoadAllAssets<Shader>();
             UnityGLTF.TextureConverter.InjectBundleShaders(shaders);
             UnityGLTF.BundleResources.InjectBundleShaders(shaders);
 
@@ -57,6 +61,11 @@ namespace TarkinItemExporter
 
             TextureFormatWebp = Config.Bind("Textures", "TextureFormatWebp", false, "WebP makes for smaller texture file size");
             TextureFormatWebpQuality = Config.Bind("Textures", "WebpQuality", 90, "");
+        }
+
+        void OnDestroy()
+        {
+            assetBundleHandler.Dispose();
         }
     }
 }
