@@ -1,10 +1,18 @@
+using BepInEx.Logging;
 using TarkinItemExporter;
 using UnityEngine;
 
 namespace AssetStudio
 {
-    public class BepinexLogger : ILogger
+    public class BepinexLoggerAdapter : ILogger
     {
+        readonly ManualLogSource logger;
+
+        public BepinexLoggerAdapter(ManualLogSource logger)
+        {
+            this.logger = logger;
+        }
+
         public void Log(LoggerEvent loggerEvent, string message, bool ignoreLevel = false)
         {
             switch (loggerEvent)
@@ -12,13 +20,13 @@ namespace AssetStudio
                 case LoggerEvent.Verbose:
                 case LoggerEvent.Debug:
                 case LoggerEvent.Info:
-                    Plugin.Log.LogInfo(message);
+                    logger.LogInfo(message);
                     break;
                 case LoggerEvent.Warning:
-                    Plugin.Log.LogWarning(message);
+                    logger.LogWarning(message);
                     break;
                 case LoggerEvent.Error:
-                    Plugin.Log.LogError(message);
+                    logger.LogError(message);
                     break;
             }
         }

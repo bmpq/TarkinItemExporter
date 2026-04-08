@@ -6,6 +6,7 @@ using TarkinItemExporter.UI;
 using System;
 using System.IO;
 using tarkin;
+using System.Collections.Generic;
 
 namespace TarkinItemExporter
 {
@@ -35,19 +36,21 @@ namespace TarkinItemExporter
             Log = new EFTLogger("ItemExporter", () => true);
             BepInEx.Logging.Logger.Sources.Add(Log);
 
-            AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
+            AssetStudio.Logger.Default = new AssetStudio.BepinexLoggerAdapter(Log);
             AssetStudio.Progress.Default = new AssetStudio.ProgressLogger();
 
             InitConfiguration();
 
+            assetBundleHandler = new AssetBundleHandler(Path.Combine(BepInEx.Paths.PluginPath, "tarkin", "ItemExporter"), Log);
+
+            GLTF_EFTMaterialExportPlugin.TextureConverter.InjectBundleShaders(
+                assetBundleHandler.LoadBundle("eftmaterial_gltf_converter_shaders").LoadAllAssets<Shader>());
+
+            UnityGLTF.BundleResources.InjectBundleShaders(
+                assetBundleHandler.LoadBundle("unitygltf").LoadAllAssets<Shader>());
+
             new PatchGetUniqueName().Enable();
             new PatchMSFT_LOD().Enable();
-
-            assetBundleHandler = new AssetBundleHandler(Path.Combine(BepInEx.Paths.PluginPath, "tarkin", "bundles"), Log);
-
-            Shader[] shaders = assetBundleHandler.LoadBundle("unitygltf").LoadAllAssets<Shader>();
-            UnityGLTF.TextureConverter.InjectBundleShaders(shaders);
-            UnityGLTF.BundleResources.InjectBundleShaders(shaders);
 
             new PatchItemSpecificationsPanel().Enable();
             new PatchUIInput().Enable();
