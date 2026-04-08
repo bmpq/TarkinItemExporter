@@ -12,7 +12,7 @@ namespace TarkinItemExporter
     [BepInPlugin("com.tarkin.itemexporter", MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     internal class Plugin : BaseUnityPlugin
     {
-        internal static ManualLogSource Log;
+        internal static EFTLogger Log;
 
         internal static ConfigEntry<string> OutputDir;
         internal static ConfigEntry<bool> OpenExplorerOnFinish;
@@ -32,7 +32,9 @@ namespace TarkinItemExporter
 
         private void Start()
         {
-            Log = base.Logger;
+            Log = new EFTLogger("ItemExporter", () => true);
+            BepInEx.Logging.Logger.Sources.Add(Log);
+
             AssetStudio.Logger.Default = new AssetStudio.BepinexLogger();
             AssetStudio.Progress.Default = new AssetStudio.ProgressLogger();
 
@@ -66,6 +68,8 @@ namespace TarkinItemExporter
         void OnDestroy()
         {
             assetBundleHandler.Dispose();
+
+            BepInEx.Logging.Logger.Sources.Remove(Log);
         }
     }
 }
