@@ -98,10 +98,7 @@ namespace TarkinItemExporter
             catch (Exception ex)
             {
                 ProgressScreen.Instance.HideGameObject();
-                Plugin.Log.LogInfo($"Export failed: {ex}");
-                NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed: {ex}",
-                    EFT.Communications.ENotificationDurationType.Long, EFT.Communications.ENotificationIconType.Alert);
+                Plugin.Log.LogError($"Export error: {ex}");
             }
 
             GameObject[] toExport = uniqueRootNodes.ToArray();
@@ -115,10 +112,7 @@ namespace TarkinItemExporter
             }
             catch (Exception ex)
             {
-                Plugin.Log.LogInfo($"Export failed: {ex}");
-                NotificationManagerClass.DisplayMessageNotification(
-                    $"Export failed. UnityGLTF failure: {ex}",
-                    EFT.Communications.ENotificationDurationType.Long);
+                Plugin.Log.LogError($"UnityGLTF failure: {ex}");
             }
 
             ProgressScreen.Instance.HideGameObject();
@@ -214,9 +208,6 @@ namespace TarkinItemExporter
                 }
 
                 Plugin.Log.LogInfo("Successful export with UnityGLTF. Output to: " + Path.Combine(pathDir, filename));
-                NotificationManagerClass.DisplayMessageNotification(
-                    $"Successful export to {Path.Combine(pathDir, filename)}", 
-                    EFT.Communications.ENotificationDurationType.Long);
 
                 if (Plugin.OpenExplorerOnFinish.Value)
                 {
