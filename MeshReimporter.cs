@@ -18,21 +18,6 @@ namespace TarkinItemExporter
         public bool Success { get; private set; } = false;
         public string ErrorMessage = "Not run yet";
 
-        public List<string> FullLog = new List<string>();
-        public string ConsolidatedLog
-        {
-            get
-            {
-                StringBuilder result = new StringBuilder();
-                result.AppendLine(ErrorMessage);
-                foreach (var logEntry in FullLog)
-                {
-                    result.AppendLine(logEntry);
-                }
-                return result.ToString();
-            }
-        }
-
         FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
 
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
@@ -61,6 +46,8 @@ namespace TarkinItemExporter
 
             bool alreadyReadable = false;
 
+            StringBuilder traceLog = new StringBuilder();
+
             try
             {
                 foreach (var assetPoolObject in assetPoolObjects)
@@ -82,30 +69,33 @@ namespace TarkinItemExporter
                     string resourcePath = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
                     string vanillaFullpath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", resourcePath));
 
+                    traceLog.AppendLine($"--- Searching for: {resourcePath} ---");
                     if (File.Exists(vanillaFullpath))
                     {
                         pathsToLoad.Add(vanillaFullpath);
+                        traceLog.AppendLine($"[+] Found vanilla item bundle at: {vanillaFullpath}");
                         continue;
                     }
                     else
                     {
-                        FullLog.Add($"No vanilla bundle exists at: {vanillaFullpath}");
+                        traceLog.AppendLine($"[-] No vanilla bundle exists at: {vanillaFullpath}");
                     }
 
                     DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
                     string serverModsDirPath = Path.Combine(gameRootDir.FullName, "SPT", "user", "mods");
                     foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
                     {
-                        FullLog.Add($"Checking if item belongs to {modDir}");
+                        traceLog.AppendLine($"Checking if modded item belongs to {modDir}");
                         string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
 
                         if (File.Exists(potentialModPath))
                         {
                             pathsToLoad.Add(potentialModPath);
+                            traceLog.AppendLine($"[+] Found potential mod bundle at: {potentialModPath}");
                         }
                         else
                         {
-                            FullLog.Add($"No bundle exists at: {potentialModPath}");
+                            traceLog.AppendLine($"[-] No mod bundle exists at: {potentialModPath}");
                         }
                     }
 
@@ -113,7 +103,7 @@ namespace TarkinItemExporter
                     if (File.Exists(fikaClientCachePath))
                         pathsToLoad.Add(fikaClientCachePath);
                     else
-                        FullLog.Add($"No bundle exists at: {pathsToLoad}");
+                        traceLog.AppendLine($"[-] No fika cached bundle exists at: {fikaClientCachePath}");
                 }
             }
             catch (Exception ex)
@@ -121,14 +111,16 @@ namespace TarkinItemExporter
                 ErrorMessage = $"Error preparing asset paths: {ex.Message}";
                 Working = false;
                 Success = false;
+                Plugin.Log.LogError($"{ErrorMessage}\nTrace Log:\n{traceLog}");
                 return;
             }
 
             if (pathsToLoad.Count == 0 && !alreadyReadable)
             {
-                ErrorMessage = "Error finding bundles of the item.";
                 Working = false;
                 Success = false;
+                ErrorMessage = $"Error finding bundles for {string.Join(", ", uniqueRootNodes.Select(node => node.name))}";
+                Plugin.Log.LogError($"{ErrorMessage}\nSearch Trace:\n{traceLog}");
                 return;
             }
 
@@ -164,8 +156,12 @@ namespace TarkinItemExporter
         
         private void ReplaceMesh(HashSet<GameObject> uniqueRootNodes, List<AssetItem> assets)
         {
+            Plugin.Log.LogInfo($"Starting process of reimporting...");
+
             try
             {
+                int replacedCount = 0;
+
                 foreach (var meshFilter in uniqueRootNodes.SelectMany(rootNode => rootNode.GetComponentsInChildren<MeshFilter>()))
                 {
                     if (meshFilter.sharedMesh == null)
@@ -173,8 +169,6 @@ namespace TarkinItemExporter
 
                     if (meshFilter.sharedMesh.isReadable)
                         continue;
-
-                    Plugin.Log.LogInfo($"{meshFilter.name}: mesh unreadable, requires reimport. Attempting...");
 
                     // matching by vertex count is more reliable than just by name
                     // matching names still have higher priority, so the likelihood of selecting the wrong mesh is lessened
@@ -185,7 +179,7 @@ namespace TarkinItemExporter
                         .FirstOrDefault();
                     if (assetItem == null)
                     {
-                        Plugin.Log.LogError($"{meshFilter.name}: couldn't find replacement mesh!");
+                        Plugin.Log.LogWarning($"{meshFilter.name}: couldn't find replacement mesh!");
                         continue;
                     }
 
@@ -193,8 +187,10 @@ namespace TarkinItemExporter
 
                     meshFilter.sharedMesh = asMesh.ConvertToUnityMesh();
 
-                    Plugin.Log.LogInfo($"{meshFilter.name}: success reimporting and replacing mesh");
+                    replacedCount++;
                 }
+
+                Plugin.Log.LogInfo($"Success reimporting and replacing {replacedCount} meshes");
 
                 Success = true;
             }

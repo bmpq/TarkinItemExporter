@@ -82,10 +82,6 @@ namespace TarkinItemExporter
 
                 ProgressScreen.Instance.HideGameObject();
 
-                Plugin.Log.LogError(meshReimporter.ConsolidatedLog);
-
-                Singleton<PreloaderUI>.Instance.ShowErrorScreen("Tarkin Item Exporter", meshReimporter.ConsolidatedLog);
-
                 yield break;
             }
 
