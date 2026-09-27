@@ -12,7 +12,9 @@ using UnityGLTF.Plugins;
 using Comfort.Common;
 using EFT.UI;
 
+#if SPT_4_0
 using IconsHash = GClass928;
+#endif
 
 namespace TarkinItemExporter
 {

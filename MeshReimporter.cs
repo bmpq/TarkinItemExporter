@@ -1,6 +1,7 @@
 ﻿using Diz.Utils;
 using EFT.AssetsManager;
 using HarmonyLib;
+using JsonType;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,7 +64,7 @@ namespace TarkinItemExporter
                         continue;
                     }
 
-                    ResourceTypeStruct resourceValue = (ResourceTypeStruct)fieldInfo.GetValue(assetPoolObject);
+                    ResourceTypeInfo resourceValue = (ResourceTypeInfo)fieldInfo.GetValue(assetPoolObject);
                     if (resourceValue.ItemTemplate == null || resourceValue.ItemTemplate.Prefab == null)
                         continue;
                     string resourcePath = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...

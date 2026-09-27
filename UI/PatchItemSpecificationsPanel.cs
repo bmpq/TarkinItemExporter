@@ -1,8 +1,10 @@
 ﻿using Comfort.Common;
 using EFT.AssetsManager;
 using EFT.InventoryLogic;
+using EFT.Settings;
 using EFT.UI;
 using EFT.UI.WeaponModding;
+using EFT.Utilities;
 using HarmonyLib;
 using SPT.Reflection.Patching;
 using System.Collections.Generic;
@@ -19,27 +21,27 @@ namespace TarkinItemExporter.UI
         }
 
         [PatchPostfix]
-        private static void PatchPostfix(ItemSpecificationPanel __instance, ItemContextAbstractClass itemContext, InteractionButtonsContainer ____interactionButtonsContainer, WeaponPreview ___weaponPreview_0)
+        private static void PatchPostfix(ItemSpecificationPanel __instance, ItemContext itemContext, InteractionButtonsContainer ____interactionButtonsContainer, WeaponPreview ____weaponPreview)
         {
-            Sprite sprite = CacheResourcesPopAbstractClass.Pop<Sprite>("characteristics/icons/builds/save_build_icon");
+            Sprite sprite = ResourcesCache.Pop<Sprite>("characteristics/icons/builds/save_build_icon");
 
             SimpleContextMenuButton _buttonTemplate = (SimpleContextMenuButton)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonTemplate").GetValue(____interactionButtonsContainer);
             RectTransform _buttonsContainer = (RectTransform)AccessTools.Field(typeof(InteractionButtonsContainer), "_buttonsContainer").GetValue(____interactionButtonsContainer);
 
-            SimpleContextMenuButton newButton = ____interactionButtonsContainer.method_1("EXPORTFILE", Plugin.TEXTBUTTON_EXPORT, _buttonTemplate, _buttonsContainer, sprite, 
+            SimpleContextMenuButton newButton = ____interactionButtonsContainer.CreateContextButton("EXPORTFILE", Plugin.TEXTBUTTON_EXPORT, _buttonTemplate, _buttonsContainer, sprite, 
                 delegate
                 {
                     Exporter.CallbackFinished = () => __instance.GetComponent<InfoWindow>().Close();
-                    Export(___weaponPreview_0.WeaponPreviewCamera.transform.root, itemContext.Item);
+                    Export(____weaponPreview.WeaponPreviewCamera.transform.root, itemContext.Item);
                 }, 
                 null, false, false);
 
-            int textureQuality = Singleton<SharedGameSettingsClass>.Instance.Graphics.Settings.TextureQuality;
+            int textureQuality = Singleton<SettingsManager>.Instance.Graphics.Settings.TextureQuality;
             bool unlocked = textureQuality > 1 || Plugin.AllowLowTextures.Value;
             SetExportButtonInteractable(newButton, unlocked);
 
             // make the new button disposable
-            ____interactionButtonsContainer.method_5(newButton);
+            ____interactionButtonsContainer.BindButton(newButton);
         }
 
         static void SetExportButtonInteractable(SimpleContextMenuButton newButton, bool interactable)
