@@ -83,7 +83,7 @@ namespace TarkinItemExporter
                     }
 
                     DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
-                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "SPT", "user", "mods");
+                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "SPT_Runtime", "user", "mods");
                     foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
                     {
                         traceLog.AppendLine($"Checking if modded item belongs to {modDir}");
@@ -100,7 +100,7 @@ namespace TarkinItemExporter
                         }
                     }
 
-                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "SPT", "user", "cache", "bundles", resourcePath);
+                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "SPT_Runtime", "user", "cache", "bundles", resourcePath);
                     if (File.Exists(fikaClientCachePath))
                         pathsToLoad.Add(fikaClientCachePath);
                     else
