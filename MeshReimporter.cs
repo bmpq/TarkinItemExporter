@@ -128,9 +128,7 @@ namespace TarkinItemExporter
 
             Task.Run(() =>
             {
-                Studio studio = new Studio();
-
-                if (studio.LoadAssets(pathsToLoad, out List <AssetItem> assets))
+                if (Studio.LoadAssets(pathsToLoad, out List <AssetItem> assets))
                 {
                     AsyncWorker.RunInMainTread(() => ReplaceMesh(uniqueRootNodes, assets));
                 }
