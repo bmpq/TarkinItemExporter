@@ -1,10 +1,8 @@
 ﻿using Diz.Utils;
 using EFT.AssetsManager;
-using HarmonyLib;
 using JsonType;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,7 +17,7 @@ namespace TarkinItemExporter
         public bool Success { get; private set; } = false;
         public string ErrorMessage = "Not run yet";
 
-        FieldInfo fieldInfo = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo Field_AssetPoolObject_ResourceType = typeof(AssetPoolObject).GetField("ResourceType", BindingFlags.NonPublic | BindingFlags.Instance);
 
         // since usual unity mesh is unreadable, we use the 3rd-party tool AssetStudio to load the item bundle again, bypassing the limitation
         public void ReimportMeshAssetsAndReplace(HashSet<GameObject> uniqueRootNodes)
@@ -37,14 +35,12 @@ namespace TarkinItemExporter
             if (uniqueRootNodes == null || uniqueRootNodes.Count == 0)
             {
                 Working = false;
-                Success = false;
                 ErrorMessage = "No root nodes provided.";
                 return;
             }
 
-            List<AssetPoolObject> assetPoolObjects = uniqueRootNodes.SelectMany(rootNode => rootNode.GetComponentsInChildren<AssetPoolObject>()).ToList();
-            HashSet<string> pathsToLoad = new HashSet<string>();
-
+            var assetPoolObjects = uniqueRootNodes.SelectMany(node => node.GetComponentsInChildren<AssetPoolObject>()).ToList();
+            HashSet<string> initialBundleRequests = new HashSet<string>();
             bool alreadyReadable = false;
 
             StringBuilder traceLog = new StringBuilder();
@@ -58,68 +54,37 @@ namespace TarkinItemExporter
                     if (meshFilters.All(meshFilter => meshFilter.sharedMesh == null))
                         continue;
 
-                    if (meshFilters.All(meshFilter => meshFilter.mesh.isReadable))
+                    if (meshFilters.All(meshFilter => meshFilter.sharedMesh != null && meshFilter.sharedMesh.isReadable))
                     {
                         alreadyReadable = true;
                         continue;
                     }
 
-                    ResourceTypeInfo resourceValue = (ResourceTypeInfo)fieldInfo.GetValue(assetPoolObject);
-                    if (resourceValue.ItemTemplate == null || resourceValue.ItemTemplate.Prefab == null)
+                    ResourceTypeInfo resourceValue = (ResourceTypeInfo)Field_AssetPoolObject_ResourceType.GetValue(assetPoolObject);
+                    if (resourceValue.ItemTemplate?.Prefab == null)
                         continue;
-                    string resourcePath = resourceValue.ItemTemplate.Prefab.path; // starts with assets/...
-                    string vanillaFullpath = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "Windows", resourcePath));
 
-                    traceLog.AppendLine($"--- Searching for: {resourcePath} ---");
-                    if (File.Exists(vanillaFullpath))
+                    string resourcePath = resourceValue.ItemTemplate.Prefab.path;
+                    if (!string.IsNullOrEmpty(resourcePath))
                     {
-                        pathsToLoad.Add(vanillaFullpath);
-                        traceLog.AppendLine($"[+] Found vanilla item bundle at: {vanillaFullpath}");
-                        continue;
+                        initialBundleRequests.Add(resourcePath);
                     }
-                    else
-                    {
-                        traceLog.AppendLine($"[-] No vanilla bundle exists at: {vanillaFullpath}");
-                    }
-
-                    DirectoryInfo gameRootDir = new DirectoryInfo(Application.streamingAssetsPath).Parent.Parent;
-                    string serverModsDirPath = Path.Combine(gameRootDir.FullName, "SPT_Runtime", "user", "mods");
-                    foreach (string modDir in Directory.GetDirectories(serverModsDirPath))
-                    {
-                        traceLog.AppendLine($"Checking if modded item belongs to {modDir}");
-                        string potentialModPath = Path.Combine(modDir, "bundles", resourcePath);
-
-                        if (File.Exists(potentialModPath))
-                        {
-                            pathsToLoad.Add(potentialModPath);
-                            traceLog.AppendLine($"[+] Found potential mod bundle at: {potentialModPath}");
-                        }
-                        else
-                        {
-                            traceLog.AppendLine($"[-] No mod bundle exists at: {potentialModPath}");
-                        }
-                    }
-
-                    string fikaClientCachePath = Path.Combine(gameRootDir.FullName, "SPT_Runtime", "user", "cache", "bundles", resourcePath);
-                    if (File.Exists(fikaClientCachePath))
-                        pathsToLoad.Add(fikaClientCachePath);
-                    else
-                        traceLog.AppendLine($"[-] No fika cached bundle exists at: {fikaClientCachePath}");
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Error preparing asset paths: {ex.Message}";
                 Working = false;
-                Success = false;
-                Plugin.Log.LogError($"{ErrorMessage}\nTrace Log:\n{traceLog}");
+                Plugin.Log.LogError($"{ErrorMessage}\n{ex}");
                 return;
             }
 
-            if (pathsToLoad.Count == 0 && !alreadyReadable)
+            HashSet<string> bundlesToLoad = BundleResolver.ResolveAllDependencies(initialBundleRequests, traceLog);
+
+            if (bundlesToLoad.Count == 0 && !alreadyReadable)
             {
                 Working = false;
-                Success = false;
+
                 ErrorMessage = $"Error finding bundles for {string.Join(", ", uniqueRootNodes.Select(node => node.name))}";
                 Plugin.Log.LogError($"{ErrorMessage}\nSearch Trace:\n{traceLog}");
                 return;
@@ -128,7 +93,7 @@ namespace TarkinItemExporter
 
             Task.Run(() =>
             {
-                if (Studio.LoadAssets(pathsToLoad, out List <AssetItem> assets))
+                if (Studio.LoadAssets(bundlesToLoad, out List<AssetItem> assets))
                 {
                     AsyncWorker.RunInMainTread(() => ReplaceMesh(uniqueRootNodes, assets));
                 }
@@ -137,16 +102,14 @@ namespace TarkinItemExporter
                     AsyncWorker.RunInMainTread(() => {
                         ErrorMessage = "Failed to load assets with AssetStudio.";
                         Working = false;
-                        Success = false;
                     });
                 }
             }).ContinueWith(task => {
                 if (task.IsFaulted)
                 {
                     AsyncWorker.RunInMainTread(() => {
-                        ErrorMessage = $"Error in AssetStudio task: {task.Exception.InnerException?.Message ?? task.Exception.Message}";
+                        ErrorMessage = $"Error in AssetStudio task: {task.Exception?.InnerException?.Message ?? task.Exception?.Message}";
                         Working = false;
-                        Success = false;
                         Plugin.Log.LogError(task.Exception);
                     });
                 }
@@ -178,7 +141,7 @@ namespace TarkinItemExporter
                         .FirstOrDefault();
                     if (assetItem == null)
                     {
-                        Plugin.Log.LogWarning($"{meshFilter.name}: couldn't find replacement mesh!");
+                        Plugin.Log.LogWarning($"{meshFilter.name}: Couldn't find replacement mesh (Vertices: {meshFilter.sharedMesh.vertexCount})!");
                         continue;
                     }
 
